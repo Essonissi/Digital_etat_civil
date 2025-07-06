@@ -9,6 +9,7 @@ class CustomUser(AbstractUser):
         ('admin', 'Administrateur métier'),
         ('agent', 'Agent'),
         ('operateur', 'Opérateur'),
+        ('citoyen', 'Citoyen'),
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='agent')
 
@@ -23,7 +24,7 @@ class CustomUser(AbstractUser):
                 self.is_staff = True
                 self.is_superuser = False
             else:
-                # Agents et opérateurs : accès admin possible (is_staff), mais pas superuser
-                self.is_staff = True
+                # Agents et opérateurs : accès admin pas possible (is_staff), mais pas superuser
+                self.is_staff = False
                 self.is_superuser = False
         super().save(*args, **kwargs)
