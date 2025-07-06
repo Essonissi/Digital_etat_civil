@@ -1,23 +1,31 @@
-"""
-URL configuration for DigitEtatCiv project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
+# Import des ViewSets
+from comptes.views import UserViewSet
+from communes.views import CommuneViewSet, MairieViewSet
+from documents.views import DocumentViewSet, PieceRequiseViewSet
+from demandes.views import DemandeViewSet
+from fichiers.views import FichierViewSet
+from centres.views import CentreInteretViewSet
+from logs.views import LogViewSet
+
+# Router DRF pour les API REST
+router = DefaultRouter()
+router.register(r'users', UserViewSet)
+router.register(r'communes', CommuneViewSet)
+router.register(r'mairies', MairieViewSet)
+router.register(r'documents', DocumentViewSet)
+router.register(r'pieces-requises', PieceRequiseViewSet)
+router.register(r'demandes', DemandeViewSet)
+router.register(r'fichiers', FichierViewSet)
+router.register(r'centres', CentreInteretViewSet)
+router.register(r'logs', LogViewSet)
+
+# Toutes les URLs
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('comptes.urls')),
+    path('api/', include(router.urls)),                  # API REST
+    path('', include('comptes.urls')),           # Vues login, dashboard, etc.
 ]

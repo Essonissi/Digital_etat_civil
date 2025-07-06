@@ -37,7 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'comptes',  # Custom app for managing accounts
+    'comptes',
+    'communes',
+    'centres',
+    'demandes',
+    'documents',
+    'fichiers',
+    'logs',
+
+
 ]
 
 MIDDLEWARE = [
@@ -75,10 +83,15 @@ WSGI_APPLICATION = 'DigitEtatCiv.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'Etat_civil',
+        'USER': 'etat_admin',
+        'PASSWORD': 'gracelachic',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 
 # Password validation
