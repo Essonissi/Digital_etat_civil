@@ -1,0 +1,421 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un compte citoyen - Service Public du Togo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        .header-banner {
+            background: #2D8F5F;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2D8F5F;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+        
+        .info-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-left: 5px solid #2D8F5F;
+        }
+        
+        .form-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .form-title {
+            color: #2D8F5F;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #2D8F5F;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(45, 143, 95, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            background: #2D8F5F;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary:hover {
+            background: #236B4A;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(45, 143, 95, 0.3);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: #2D8F5F;
+            border: 2px solid #2D8F5F;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .btn-secondary:hover {
+            background: #2D8F5F;
+            color: white;
+        }
+        
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .info-title {
+            color: #2D8F5F;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .info-subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .info-text {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .features-list {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+        
+        .features-list li {
+            padding: 0.5rem 0;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .features-list li::before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            width: 20px;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #6b7280;
+        }
+        
+        .login-link a {
+            color: #2D8F5F;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .togo-emblem {
+            width: 40px;
+            height: 40px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>') no-repeat center;
+            background-size: contain;
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 1rem;
+            }
+            
+            .header-banner {
+                padding: 0.5rem 1rem;
+            }
+            
+            .logo {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Banner -->
+    <div class="header-banner">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+            <div class="logo-container">
+                <div class="logo">
+                    <div class="togo-emblem"></div>
+                </div>
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">
+                        République Togolaise
+                    </h1>
+                    <p style="opacity: 0.9; font-size: 0.9rem;">
+                        Service Public - Portail Citoyen
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Information Section -->
+        <div class="info-section">
+            <h2 class="info-title">Créer votre compte citoyen</h2>
+            <p class="info-subtitle">
+                Accédez aux services publics digitalisés du Togo
+            </p>
+            <p class="info-text">
+                Créez votre compte pour accéder facilement à l'ensemble des services publics 
+                digitalisés de l'administration togolaise. Une seule inscription vous donne 
+                accès à tous les services.
+            </p>
+            
+            <h3 style="color: #2D8F5F; font-weight: 600; margin-bottom: 1rem;">
+                Avantages de votre compte :
+            </h3>
+            <ul class="features-list">
+                <li>Demandes de documents officiels en ligne</li>
+                <li>Suivi de l'état d'avancement de vos dossiers</li>
+                <li>Paiement sécurisé des frais administratifs</li>
+                <li>Notification automatique des mises à jour</li>
+                <li>Accès 24h/24 et 7j/7</li>
+                <li>Historique de toutes vos démarches</li>
+            </ul>
+            
+            <a href="#" class="btn-secondary">
+                En savoir plus sur nos services
+            </a>
+        </div>
+
+        <!-- Form Section -->
+        <div class="form-section">
+            <h2 class="form-title">Inscription</h2>
+            
+            {% if messages %}
+                <div class="error-message">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="username" class="form-label">Nom d'utilisateur</label>
+                    <input 
+                        type="text" 
+                        id="username"
+                        name="username" 
+                        placeholder="Choisissez un nom d'utilisateur" 
+                        required 
+                        class="form-input"
+                    >
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="last_name" class="form-label">Nom</label>
+                        <input 
+                            type="text" 
+                            id="last_name"
+                            name="last_name" 
+                            placeholder="Votre nom de famille" 
+                            required 
+                            class="form-input"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="first_name" class="form-label">Prénom</label>
+                        <input 
+                            type="text" 
+                            id="first_name"
+                            name="first_name" 
+                            placeholder="Votre prénom" 
+                            required 
+                            class="form-input"
+                        >
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Adresse email</label>
+                    <input 
+                        type="email" 
+                        id="email"
+                        name="email" 
+                        placeholder="votre.email@exemple.com" 
+                        required 
+                        class="form-input"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="telephone" class="form-label">Numéro de téléphone</label>
+                    <input 
+                        type="tel" 
+                        id="telephone"
+                        name="telephone" 
+                        placeholder="+228 XX XX XX XX" 
+                        required 
+                        class="form-input"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input 
+                        type="password" 
+                        id="password"
+                        name="password" 
+                        placeholder="Saisissez votre mot de passe" 
+                        required 
+                        class="form-input"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password2" class="form-label">Confirmer le mot de passe</label>
+                    <input 
+                        type="password" 
+                        id="password2"
+                        name="password2" 
+                        placeholder="Confirmez votre mot de passe" 
+                        required 
+                        class="form-input"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="sexe" class="form-label">Sexe</label>
+                    <select id="sexe" name="sexe" required class="form-input">
+                        <option value="">Sélectionnez votre sexe</option>
+                        <option value="M">Masculin</option>
+                        <option value="F">Féminin</option>
+                        <option value="A">Autre</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn-primary">
+                    Créer mon compte
+                </button>
+            </form>
+            
+            <div class="login-link">
+                <p>Vous avez déjà un compte ?</p>
+                <a href="{% url 'citoyen_login' %}">
+                    Se connecter
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

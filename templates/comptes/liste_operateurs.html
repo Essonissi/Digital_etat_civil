@@ -1,0 +1,81 @@
+{% extends "layouts/base_admin.html" %}
+{% block title %}Liste des Agents{% endblock %}
+{% block content %}
+  <h2>Liste des opérateurs</h2>
+  <div class="mb-3">
+    <a href="{% url 'creer_utilisateur' %}?type=operateur" class="btn btn-primary">Créer un opérateur</a>
+  </div>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Nom d'utilisateur</th>
+        <th>Email</th>
+        <th>Commune</th>
+        <th>Téléphone</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in operateurs %}
+      <tr>
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{% if user.commune %}{{ user.commune.nom }}{% else %}—{% endif %}</td>
+        <td>{{ user.telephone|default:"—" }}</td>
+        <td>{% if user.is_active %}✅ Actif{% else %}❌ Inactif{% endif %}</td>
+        <td>
+          <a href="{% url 'modifier_utilisateur' user.id %}" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editOperateurModal{{ user.id }}">Modifier</a>
+          <a href="{% url 'toggle_utilisateur' user.id %}" class="btn btn-sm btn-secondary">
+            {% if user.is_active %}Désactiver{% else %}Activer{% endif %}
+          </a>
+        </td>
+      </tr>
+      <!-- Modal pour modifier l'opérateur -->
+      <div class="modal fade" id="editOperateurModal{{ user.id }}" tabindex="-1" aria-labelledby="editOperateurModalLabel{{ user.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form method="post" action="{% url 'modifier_utilisateur' user.id %}">
+              {% csrf_token %}
+              <div class="modal-header">
+                <h5 class="modal-title" id="editOperateurModalLabel{{ user.id }}">Modifier l'opérateur</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label class="form-label">Nom</label>
+                  <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Prénom</label>
+                  <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Email</label>
+                  <input type="email" name="email" value="{{ user.email }}" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Téléphone</label>
+                  <input type="text" name="telephone" value="{{ user.telephone }}" class="form-control">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Sexe</label>
+                  <select name="sexe" class="form-control" required>
+                    <option value="M" {% if user.sexe == "M" %}selected{% endif %}>Masculin</option>
+                    <option value="F" {% if user.sexe == "F" %}selected{% endif %}>Féminin</option>
+                    <option value="A" {% if user.sexe == "A" %}selected{% endif %}>Autre</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

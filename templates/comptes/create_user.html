@@ -1,0 +1,69 @@
+{% extends "layouts/base_admin.html" %}
+
+{% block title %}Créer un {{ user_type }}{% endblock %}
+
+{% block content %}
+  <h3>Ajouter un nouvel utilisateur</h3>
+  <form method="POST">
+    {% csrf_token %}
+    
+    <div>
+      <label>Nom d'utilisateur</label>
+      <input type="text" name="username" class="form-control" required>
+    </div>
+
+    <div>
+      <label>Nom</label>
+      <input type="text" name="last_name" class="form-control" required>
+    </div>
+
+    <div>
+      <label>Prénom</label>
+      <input type="text" name="first_name" class="form-control" required>
+    </div>
+
+    <div>
+      <label>Email</label>
+      <input type="email" name="email" class="form-control" required>
+    </div>
+
+    <div>
+      <label>Téléphone</label>
+      <input type="text" name="telephone" class="form-control" required>
+    </div>
+
+    <div>
+      <label>Mot de passe</label>
+      <input type="password" name="password" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="sexe">Sexe</label>
+      <select name="sexe" id="sexe" class="form-control" required>
+        <option value="">Sélectionnez le sexe</option>
+        <option value="M">Masculin</option>
+        <option value="F">Féminin</option>
+      </select>
+    </div>
+
+    {% if user_type == 'agent' %}
+    <div class="mb-3" id="quartier-section">
+      <label for="quartier">Quartier</label>
+      <select name="quartier" id="quartier" class="form-control" required>
+        <option value="">Sélectionnez un quartier</option>
+        {% for quartier in quartiers %}
+          <option value="{{ quartier.id }}">{{ quartier.nom }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <button type="submit" class="btn btn-success mt-3">
+      Créer {{ user_type|title }}
+    </button>
+
+    {% if error %}
+      <div class="text-danger mt-2">{{ error }}</div>
+    {% endif %}
+  </form>
+{% endblock %}
