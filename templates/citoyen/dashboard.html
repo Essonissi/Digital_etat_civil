@@ -1,0 +1,123 @@
+{% extends "layouts/base_citoyen.html" %}
+{% load dict_extras %}
+
+{% block title %}Documents disponibles{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <!-- Colonne gauche : Documents -->
+    <div class="col-md-8">
+      <h2 class="mb-4">Documents disponibles</h2>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-2 g-4">
+        {% for document in documents %}
+          <div class="col">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header bg-success text-white">
+                <strong>{{ document.type }}</strong>
+              </div>
+              <div class="card-body">
+                <p class="card-text">{{ document.description }}</p>
+                <ul class="list-group list-group-flush mb-2">
+                  {% with pieces=pieces_dict|get_item:document %}
+                    {% for piece in pieces %}
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ piece.libelle_piece }}
+                        {% if piece.obligatoire %}
+                          <span class="badge bg-danger">Obligatoire</span>
+            {% else %}
+                          <span class="badge bg-secondary">Facultatif</span>
+            {% endif %}
+                      </li>
+                    {% empty %}
+                      <li class="list-group-item text-muted">Aucune pièce requise.</li>
+                    {% endfor %}
+                  {% endwith %}
+                </ul>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Colonne droite : Statistiques -->
+    <div class="col-md-4 mb-4">
+      <a href="{% url 'documents_citoyen' %}" style="text-decoration: none; color: inherit;">
+        <div class="card shadow-sm" style="cursor:pointer;">
+          <div class="card-header bg-success text-white">
+            <strong><i class="fas fa-chart-bar me-2"></i>Mes statistiques</strong>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="text-center p-3 bg-light rounded">
+                  <div class="h4 text-primary mb-1">{{ demandes|length }}</div>
+                  <small class="text-muted">Total</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="text-center p-3 bg-warning bg-opacity-10 rounded">
+                  <div class="h4 text-warning mb-1">{{ demandes_en_attente|length }}</div>
+                  <small class="text-muted">En attente</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="text-center p-3 bg-success bg-opacity-10 rounded">
+                  <div class="h4 text-success mb-1">{{ demandes_validees|length }}</div>
+                  <small class="text-muted">Validées</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
+                  <div class="h4 text-danger mb-1">{{ demandes_rejetees|length }}</div>
+                  <small class="text-muted">Rejetées</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <div class="mt-4 d-grid">
+        <a href="{% url 'nouvelle_demande' %}" class="btn btn-success btn-lg">
+          <i class="fas fa-plus me-2"></i>Faire une nouvelle demande
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+.bg-opacity-10 {
+  background-color: rgba(var(--bs-bg-opacity-color), 0.1) !important;
+}
+.list-group-item {
+  border-left: none;
+  border-right: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+.list-group-item:first-child {
+  border-top: none;
+}
+.list-group-item:last-child {
+  border-bottom: none;
+}
+@media (max-width: 768px) {
+  .row.g-3 .col-6 {
+    margin-bottom: 1rem;
+  }
+}
+.card.shadow-sm:hover {
+  box-shadow: 0 0 0 0.2rem #1ec98e;
+  transition: box-shadow 0.2s;
+}
+</style>
+{% endblock %}

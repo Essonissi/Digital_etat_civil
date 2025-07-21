@@ -1,0 +1,188 @@
+{% extends "layouts/base_admin.html" %}
+
+{% block title %}Demandes de mon quartier{% endblock %}
+
+{% block extra_css %}
+<style>
+  .content-wrapper {
+    padding: 2rem;
+  }
+  
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+  }
+  
+  .table {
+    margin-bottom: 0;
+  }
+  
+  .table thead th {
+    background: #f8f9fa;
+    border: none;
+    padding: 1.2rem 1rem;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+  }
+  
+  .table tbody tr {
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #f8f9ff;
+  }
+  
+  .table tbody td {
+    padding: 1.2rem 1rem;
+    border: none;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+  }
+  
+  .badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .badge.bg-warning {
+    background: #ffc107 !important;
+    color: #212529 !important;
+  }
+  
+  .badge.bg-success {
+    background: #28a745 !important;
+  }
+  
+  .badge.bg-danger {
+    background: #dc3545 !important;
+  }
+  
+  .badge.bg-secondary {
+    background: #6c757d !important;
+  }
+  
+  .btn-outline-primary {
+    border: 2px solid #007bff;
+    color: #007bff;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+  
+  .btn-outline-primary:hover {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  }
+  
+  .user-info {
+    line-height: 1.4;
+  }
+  
+  .user-name {
+    font-weight: 600;
+    color: #495057;
+    display: block;
+  }
+  
+  .user-username {
+    color: #6c757d;
+    font-size: 0.85rem;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    font-style: italic;
+  }
+  
+  .document-type {
+    font-weight: 600;
+    color: #495057;
+  }
+  
+  .date-display {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+  <h2 class="page-title">Demandes de mon quartier</h2>
+  
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Date</th>
+          <th>Statut</th>
+          <th>Demandeur</th>
+          <th>Motif</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for demande in demandes %}
+          <tr>
+            <td>
+              <span class="document-type">{{ demande.document.type }}</span>
+            </td>
+            <td>
+              <span class="date-display">{{ demande.date_demande|date:"d/m/Y H:i" }}</span>
+            </td>
+            <td>
+              {% if demande.statut == 'en_attente' %}
+                <span class="badge bg-warning text-dark">En attente</span>
+              {% elif demande.statut == 'validee' %}
+                <span class="badge bg-success">Validée</span>
+              {% elif demande.statut == 'rejetee' %}
+                <span class="badge bg-danger">Rejetée</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ demande.statut }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="user-info">
+                <span class="user-name">{{ demande.user.first_name }} {{ demande.user.last_name }}</span>
+                <small class="user-username">{{ demande.user.username }}</small>
+              </div>
+            </td>
+            <td>{{ demande.motif|default:"-" }}</td>
+            <td>
+              <a href="{% url 'agent:detail_demande' demande.id %}" class="btn btn-outline-primary">Voir</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="empty-state">Aucune demande trouvée.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -12,6 +12,18 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 from .models import Quartier, Demande, Commune
+from django.urls import reverse
+from django.http import JsonResponse
+from communes.models import Quartier
+from documents.models import Document, PieceRequise
+from demandes.models import Demande
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from django.contrib.auth import get_user_model
+from django.utils.http import urlsafe_base64_decode
+from django.http import HttpResponse
 
 # --- API ViewSet ---
 class UserViewSet(viewsets.ModelViewSet):
@@ -38,6 +50,22 @@ def login_view(request):
         else:
             error = "Identifiants invalides"
     return render(request, 'comptes/login.html', {'error': error})
+
+    User = get_user_model()
+
+def verifier_email(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user and default_token_generator.check_token(user, token):
+        user.email_verifie = True
+        user.save()
+        return HttpResponse("Email vérifié avec succès !")
+    else:
+        return HttpResponse("Lien invalide ou expiré.")
 
 # --- Vue de connexion citoyen ---
 def citoyen_login_view(request):
@@ -100,6 +128,39 @@ def citoyen_register_view(request):
 
     return render(request, 'comptes/citoyen_signup.html', {'error': error})
 
+def envoyer_email_verification(request, user):
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    lien = request.build_absolute_uri(reverse('verifier_email', args=[uid, token]))
+    
+    message = f"Bonjour {user.username},\n\nCliquez sur ce lien pour confirmer votre adresse email : {lien}"
+    send_mail(
+        "Confirmation de votre adresse email",
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        fail_silently=False
+    )
+
+@login_required
+def choisir_localisation(request):
+    communes = Commune.objects.all()
+
+    if request.method == 'POST':
+        commune_id = request.POST.get('commune')
+        quartier_id = request.POST.get('quartier')
+
+        request.user.commune_id = commune_id
+        request.user.quartier_id = quartier_id
+        request.user.save()
+
+        return redirect('nouvelle_demande')  # Redirige vers la page de demande
+
+    return render(request, 'citoyen/choisir_localisation.html', {
+        'communes': communes
+    })
+
+
 # --- Dashboards selon rôle ---
 @login_required
 @role_required(['superadmin'])
@@ -128,14 +189,35 @@ def agent_dashboard(request):
 @login_required
 @role_required(['citoyen'])
 def citoyen_dashboard(request):
-    return render(request, 'dashboards/dashboard_base.html')
+    # SUPPRIMER cette ligne :
+    # if not request.user.commune or not request.user.quartier:
+    #     return redirect('choisir_localisation')
 
+    # Liste des documents disponibles
+    documents = Document.objects.all()
+    pieces_dict = {}
+    for doc in documents:
+        pieces = PieceRequise.objects.filter(document=doc, commune=request.user.commune)
+        pieces_dict[doc] = pieces
+
+    # Statistiques sur les demandes du citoyen
+    demandes = Demande.objects.filter(user=request.user).order_by('-date_demande')
+    demandes_validees = [d for d in demandes if d.statut == 'validee']
+    demandes_en_attente = [d for d in demandes if d.statut == 'en_attente']
+    demandes_rejetees = [d for d in demandes if d.statut == 'rejetee']
+
+    return render(request, 'citoyen/dashboard.html', {
+        'documents': documents,
+        'pieces_dict': pieces_dict,
+        'demandes': demandes,
+        'demandes_validees': demandes_validees,
+        'demandes_en_attente': demandes_en_attente,
+        'demandes_rejetees': demandes_rejetees,
+    })
 # --- Création des agents et des opérateurs par l'admin ---
-
 
 @login_required
 @role_required(['admin'])
-
 def create_agent_or_operateur(request):
     error = None
     user_type = request.GET.get('type')
@@ -149,7 +231,7 @@ def create_agent_or_operateur(request):
         username = request.POST.get('username')
         email = request.POST.get('email')
         password = request.POST.get('password')
-        sexe = request.POST.get('sexe')  
+        sexe = request.POST.get('sexe')
         quartier_id = request.POST.get('quartier') if user_type == 'agent' else None
         quartier = Quartier.objects.get(id=quartier_id) if quartier_id else None
 
@@ -172,7 +254,7 @@ def create_agent_or_operateur(request):
             )
             return redirect('liste_agents' if user_type == 'agent' else 'liste_operateurs')
 
-    return render(request, 'comptes/create_user.html', {
+    return render(request, 'dashboards/admin/create_user.html', {
         'error': error,
         'user_type': user_type,
         'quartiers': quartiers
@@ -186,22 +268,17 @@ def create_agent_or_operateur(request):
 @role_required(['admin'])
 def liste_agents(request):
     agents = CustomUser.objects.filter(role='agent')
-    return render(request, 'comptes/liste_agents.html', {'agents': agents})
+    return render(request, 'dashboards/admin/liste_agents.html', {'agents': agents})
 
 @login_required
 @role_required(['admin'])
 def liste_operateurs(request):
     operateurs = CustomUser.objects.filter(role='operateur')
-    return render(request, 'comptes/liste_operateurs.html', {'operateurs': operateurs})
+    return render(request, 'dashboards/admin/liste_operateurs.html', {'operateurs': operateurs})
 
-@login_required
-@role_required(['agent'])
-def liste_demandes(request):
-    demandes = Demande.objects.filter(quartier=request.user.quartier)
-    return render(request, 'comptes/liste_demandes.html', {'demandes': demandes})
+
 
 # --- Vue pour la modification ---
-@login_required
 @role_required(['admin'])
 def modifier_utilisateur(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
@@ -226,7 +303,12 @@ def toggle_utilisateur(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
     user.is_active = not user.is_active
     user.save()
-    return redirect('liste_agents')  
+    if user.role == 'agent':
+        return redirect('liste_agents')
+    elif user.role == 'operateur':
+            return redirect('liste_operateurs')
+    else:
+            return redirect('admin_dashboard')
 
 @login_required
 def force_password_change(request):
@@ -248,3 +330,9 @@ def force_password_change(request):
         form = PasswordChangeForm(request.user)
         error = None
     return render(request, 'comptes/force_password_change.html', {'form': form, 'error': error})
+
+def quartiers_par_commune(request):
+    commune_id = request.GET.get('commune_id')
+    quartiers = Quartier.objects.filter(commune_id=commune_id)
+    data = [{'id': q.id, 'nom': q.nom} for q in quartiers]
+    return JsonResponse({'quartiers': data})

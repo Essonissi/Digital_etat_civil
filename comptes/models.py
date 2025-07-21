@@ -21,8 +21,10 @@ class CustomUser(AbstractUser):
         ('F', 'Féminin'),
     ]
     sexe = models.CharField(max_length=1, choices=SEXE_CHOICES, blank=True, null=True)
-    telephone = models.CharField(max_length=30, blank=True, null=True)  # <-- Ajouté ici
+    telephone = models.CharField(max_length=30, blank=True, null=True) 
     quartier = models.ForeignKey(Quartier, on_delete=models.SET_NULL, null=True, blank=True)
+    email_verifie = models.BooleanField(default=False)
+    code_verification = models.CharField(max_length=6, blank=True, null=True)
     
     def save(self, *args, **kwargs):
         # Si superuser, on garde is_superuser et is_staff à True

@@ -1,0 +1,56 @@
+{% extends "layouts/base_admin.html" %}
+{% block title %}Détail de la demande{% endblock %}
+{% block content %}
+<h2>Détail de la demande</h2>
+<ul class="list-group mb-3">
+  <li class="list-group-item"><strong>Type :</strong> {{ demande.document.type }}</li>
+  <li class="list-group-item"><strong>Date :</strong> {{ demande.date_demande|date:"d/m/Y H:i" }}</li>
+  <li class="list-group-item"><strong>Statut :</strong>
+    {% if demande.statut == 'en_attente' %}
+      <span class="badge bg-warning text-dark">En attente</span>
+    {% elif demande.statut == 'validee' %}
+      <span class="badge bg-success">Validée</span>
+    {% elif demande.statut == 'rejetee' %}
+      <span class="badge bg-danger">Rejetée</span>
+    {% else %}
+      <span class="badge bg-secondary">{{ demande.statut }}</span>
+    {% endif %}
+  </li>
+  <li class="list-group-item"><strong>Demandeur :</strong> {{ demande.user.first_name }} {{ demande.user.last_name }} ({{ demande.user.username }})</li>
+  <li class="list-group-item"><strong>Motif :</strong> {{ demande.motif|default:"-" }}</li>
+  {% if demande.motif_rejet %}
+    <li class="list-group-item"><strong>Motif de rejet :</strong> {{ demande.motif_rejet }}</li>
+  {% endif %}
+</ul>
+
+<h4>Fichiers joints</h4>
+<ul>
+  {% for fichier in fichiers %}
+    <li>
+      <a href="{{ MEDIA_URL }}{{ fichier.chemin }}" target="_blank">{{ fichier.nom_fichier }}</a>
+    </li>
+  {% empty %}
+    <li class="text-muted">Aucun fichier joint.</li>
+  {% endfor %}
+</ul>
+
+{% if demande.statut == 'en_attente' %}
+  <form method="post" class="mt-4">
+    {% csrf_token %}
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    <button type="submit" name="action" value="valider" class="btn btn-success me-2">Valider</button>
+    <button type="button" class="btn btn-danger" data-bs-toggle="collapse" data-bs-target="#motifRejetCollapse">Rejeter</button>
+    <div class="collapse mt-3" id="motifRejetCollapse">
+      <div class="mb-2">
+        <label for="motif_rejet" class="form-label">Motif du rejet</label>
+        <textarea name="motif_rejet" id="motif_rejet" class="form-control"></textarea>
+      </div>
+      <button type="submit" name="action" value="rejeter" class="btn btn-danger">Confirmer le rejet</button>
+    </div>
+  </form>
+{% endif %}
+
+<a href="{% url 'agent:liste_demandes' %}" class="btn btn-secondary mt-3">Retour à la liste</a>
+{% endblock %}

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portail Citoyen de la Commune</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Header amélioré */
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.06)"/></svg>');
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(45deg, #10b981, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+        
+        .nav-links li a {
+            text-decoration: none;
+            color: #cbd5e1;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.7rem 1.2rem;
+            border-radius: 30px;
+            position: relative;
+        }
+        
+        .nav-links li a::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(45deg, #10b981, #34d399);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .nav-links li a:hover {
+            color: white;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .nav-links li a:hover::before {
+            width: 80%;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .auth-buttons a {
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.8rem 1.8rem;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-buttons .login {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .auth-buttons .login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
+        }
+        
+        .auth-buttons .register {
+            border: 2px solid #10b981;
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .auth-buttons .register:hover {
+            background: #10b981;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Hero section */
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Message d'accès */
+        .access-notice {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 3rem auto;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .access-notice::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        }
+        
+        .notice-content {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .notice-icon {
+            font-size: 3rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        
+        .notice-text {
+            flex: 1;
+        }
+        
+        .notice-text h3 {
+            color: #92400e;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .notice-text p {
+            color: #a16207;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .notice-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-direction: column;
+        }
+        
+        .notice-btn {
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 140px;
+        }
+        
+        .notice-btn.primary {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        
+        .notice-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+        
+        .notice-btn.secondary {
+            background: white;
+            color: #d97706;
+            border: 2px solid #f59e0b;
+        }
+        
+        .notice-btn.secondary:hover {
+            background: #f59e0b;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            color: #64748b;
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .section-title {
+            color: #1e293b;
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 5px;
+            background: linear-gradient(45deg, #10b981, #34d399);
+            margin: 1rem auto 0 auto;
+            border-radius: 3px;
+        }
+        
+        /* Cards améliorées */
+        .boxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        
+        .box {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #f1f5f9;
+        }
+        
+        .box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(45deg, #10b981, #34d399);
+        }
+        
+        .box:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+        }
+        
+        .box-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        
+        .box-title {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .box-desc {
+            color: #64748b;
+            font-size: 1rem;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+        
+        .box-delay {
+            color: #10b981;
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 15px;
+            margin-top: 1rem;
+        }
+        
+        /* Stats section améliorée */
+        .stats-section {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            padding: 3rem 2rem;
+            margin: 4rem auto 2rem auto;
+            max-width: 1000px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(45deg, #10b981, #34d399, #06b6d4);
+        }
+        
+        .stats-title {
+            text-align: center;
+            color: #1e293b;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #475569;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .boxes {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .notice-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.5rem;
+            }
+            
+            .notice-buttons {
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .box {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .box:nth-child(1) { animation-delay: 0.1s; }
+        .box:nth-child(2) { animation-delay: 0.2s; }
+        .box:nth-child(3) { animation-delay: 0.3s; }
+        .box:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <span class="logo">🏛️ Commune</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#">FAQ</a></li>
+                <li><a href="#">Annuaire</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <a href="{% url 'citoyen_login' %}" class="login">Se connecter</a>
+                <a href="{% url 'citoyen_signup' %}" class="register">Créer un compte</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1>Votre Mairie en Ligne</h1>
+        <p>Simplifiez vos démarches administratives avec notre portail citoyen moderne et sécurisé</p>
+        
+        <!-- Message d'inscription/connexion -->
+        <div class="access-notice">
+            <div class="notice-content">
+                <span class="notice-icon">🔐</span>
+                <div class="notice-text">
+                    <h3>Accès aux services</h3>
+                    <p>Pour accéder à nos services en ligne, vous devez vous <strong>connecter</strong> ou <strong>créer un compte</strong>.</p>
+                </div>
+                <div class="notice-buttons">
+                    <a href="{% url 'citoyen_login' %}" class="notice-btn primary">Se connecter</a>
+                    <a href="{% url 'citoyen_signup' %}" class="notice-btn secondary">Créer un compte</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="main-container">
+        <h2 class="section-title">Pièces délivrées par la mairie</h2>
+        <div class="boxes">
+            <div class="box">
+                <span class="box-icon">🧾</span>
+                <span class="box-title">Demander un acte de naissance</span>
+                <span class="box-desc">Obtenez un acte de naissance officiel pour toute personne née dans la commune.</span>
+                <span class="box-delay">⏳ Délai : 48 à 72h (si dossier complet)</span>
+            </div>
+            <div class="box">
+                <span class="box-icon">💍</span>
+                <span class="box-title">Demander un acte de mariage</span>
+                <span class="box-desc">Recevez un acte de mariage pour les unions célébrées ou transcrites à la mairie.</span>
+                <span class="box-delay">⏳ Délai : 3 à 7 jours ouvrés</span>
+            </div>
+            <div class="box">
+                <span class="box-icon">⚰️</span>
+                <span class="box-title">Demander un acte de décès</span>
+                <span class="box-desc">Obtenez un acte de décès pour toute personne décédée dans la commune.</span>
+                <span class="box-delay">⏳ Délai : 48 à 72h</span>
+            </div>
+            <div class="box">
+                <span class="box-icon">📝</span>
+                <span class="box-title">Transcription de jugement supplétif</span>
+                <span class="box-desc">Faites transcrire un jugement supplétif pour obtenir un acte d'état civil officiel.</span>
+                <span class="box-delay">⏳ Délai : 72h après dépôt du dossier</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <h3 class="stats-title">Nos performances</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">1,247</div>
+                <div class="stat-label">Demandes traitées</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">45</div>
+                <div class="stat-label">Communes connectées</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">892</div>
+                <div class="stat-label">Utilisateurs actifs</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

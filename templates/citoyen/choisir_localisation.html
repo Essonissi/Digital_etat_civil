@@ -1,0 +1,54 @@
+{% extends "layouts/base_citoyen.html" %}
+{% block title %}Localisation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h4>Choisissez votre commune et quartier</h4>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="commune">Commune</label>
+      <select id="commune" name="commune" class="form-select" required>
+        <option value="">-- Sélectionner une commune --</option>
+        {% for commune in communes %}
+          <option value="{{ commune.id }}">{{ commune.nom }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="quartier">Quartier</label>
+      <select id="quartier" name="quartier" class="form-select" required>
+        <option value="">-- Sélectionner un quartier --</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
+  </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+document.getElementById('commune').addEventListener('change', function() {
+  var communeId = this.value;
+  var quartierSelect = document.getElementById('quartier');
+  quartierSelect.innerHTML = '<option value="">Chargement...</option>';
+  $.ajax({
+    url: "{% url 'ajax_quartiers' %}",
+    data: {
+      'commune_id': communeId
+    },
+    success: function(data) {
+      quartierSelect.innerHTML = '<option value="">-- Sélectionner un quartier --</option>';
+      data.quartiers.forEach(q => {
+        quartierSelect.innerHTML += `<option value="${q.id}">${q.nom}</option>`;
+      });
+    },
+    error: function(xhr, status, error) {
+      quartierSelect.innerHTML = '<option value="">-- Erreur de chargement des quartiers --</option>';
+      console.error("Erreur lors du chargement des quartiers:", error);
+    }
+    });
+});
+</script>
+{% endblock %}

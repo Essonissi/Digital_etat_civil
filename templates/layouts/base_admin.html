@@ -59,7 +59,7 @@
     <a class="nav-link" href="{% url 'liste_operateurs'%}">🛠 Gérer les opérateurs</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="#">📄 Pièces requises</a>
+    <a class="nav-link" href="{% url 'gestion_pieces' %}">📄 Pièces requises</a>
   </li>
   <li class="nav-item">
     <a class="nav-link" href="#">📋 Logs</a>
@@ -70,7 +70,7 @@
     <a class="nav-link" href="{% url 'agent_dashboard' %}">📑 Dashboard Agent</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="#">📥 Gérer les demandes</a>
+    <a class="nav-link" href="{% url 'agent:liste_demandes' %}">📥 Gérer les demandes</a>
   </li>
 
 {% elif request.user.role == 'operateur' %}
@@ -94,6 +94,16 @@
 
       <!-- Page content -->
       <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+        {% if messages %}
+          <div class="container mt-3">
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
         {% block content %}
         <h1>Contenu principal</h1>
         {% endblock %}

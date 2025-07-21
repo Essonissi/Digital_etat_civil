@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Espace Citoyen{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f5f6fa;
+        }
+        .header-citoyen {
+            background: #15706a;
+            color: #fff;
+            padding: 0.5rem 0;
+        }
+        .header-citoyen .nav-link, .header-citoyen .navbar-brand {
+            color: #fff !important;
+            font-weight: 500;
+        }
+        .header-citoyen .btn-success {
+            background: #1ec98e;
+            border: none;
+        }
+        .header-citoyen .btn-success:hover {
+            background: #15706a;
+        }
+        .side-menu {
+            background: #15706a;
+            color: #fff;
+            min-height: 100vh;
+            padding-top: 2rem;
+        }
+        .side-menu .menu-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .side-menu .nav-link {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .side-menu .nav-link.active, .side-menu .nav-link:hover {
+            background: #1ec98e;
+            color: #fff;
+            border-radius: 0.5rem;
+        }
+        .dashboard-tiles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .dashboard-tile {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px rgba(21,112,106,0.08);
+            padding: 2rem 1.5rem;
+            flex: 1 1 250px;
+            min-width: 220px;
+            max-width: 320px;
+            text-align: center;
+            transition: box-shadow 0.2s;
+        }
+        .dashboard-tile:hover {
+            box-shadow: 0 6px 24px rgba(21,112,106,0.15);
+        }
+        .dashboard-tile .tile-icon {
+            font-size: 2.5rem;
+            color: #15706a;
+            margin-bottom: 1rem;
+        }
+        .dashboard-tile .tile-title {
+            font-weight: bold;
+            color: #15706a;
+            margin-bottom: 0.5rem;
+        }
+        .dashboard-tile .tile-desc {
+            color: #4b5563;
+            font-size: 0.95rem;
+        }
+        
+        /* Style pour le tiroir de notifications */
+        #notification-panel {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            height: 100%;
+            width: 380px;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+            z-index: 1050;
+            transition: right 0.3s ease-in-out;
+            overflow: hidden;
+        }
+        
+        #notification-panel.open {
+            right: 0px;
+        }
+        
+        .notification-item {
+            border-left: 4px solid #15706a;
+        }
+        
+        .notification-icon {
+            width: 40px;
+            text-align: center;
+        }
+        
+        @media (max-width: 991px) {
+            .side-menu {
+                min-height: auto;
+                padding: 1rem 0.5rem;
+            }
+            .dashboard-tiles {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            #notification-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+    <!-- Header -->
+    <nav class="navbar header-citoyen navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Service Public Communal</a>
+            <div class="d-flex align-items-center">
+                <div class="position-relative me-3">
+                    <a href="#" onclick="toggleNotificationPanel(); return false;" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span id="notification-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none;">0</span>
+                    </a>
+                </div>
+                <a href="#" class="nav-link">Annuaire de l'administration</a>
+                <a href="#" class="nav-link">FAQ</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Panneau de notifications (tiroir latéral) -->
+    <div id="notification-panel">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="m-0">Notifications</h5>
+            <button class="btn btn-sm btn-outline-secondary" onclick="closeNotificationPanel()">&times;</button>
+        </div>
+        <div id="notification-list" class="p-3 overflow-auto" style="height: calc(100% - 60px);">
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-bell-slash fa-2x mb-3"></i>
+                <p>Aucune nouvelle notification</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay pour fermer le tiroir en cliquant à côté -->
+    <div id="notification-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 1040; display: none;" onclick="closeNotificationPanel()"></div>
+
+    <div class="container-fluid">
+        <div class="row">
+            {% block side_menu %}
+            <nav class="col-lg-2 col-md-3 side-menu d-none d-md-block">
+                <div class="menu-title">MENU</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'citoyen_dashboard' %}active{% endif %}" href="{% url 'citoyen_dashboard' %}">Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'documents_citoyen' %}active{% endif %}" href="{% url 'documents_citoyen' %}">Mes demandes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Profil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'citoyen_logout' %}" data-bs-toggle="modal" data-bs-target="#logoutModal">Déconnexion</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endblock %}
+            <main class="col-lg-10 col-md-9 py-4">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal de déconnexion -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="logoutModalLabel">Déconnexion</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+          </div>
+          <div class="modal-body">
+            Voulez-vous vraiment vous déconnecter ?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <form method="post" action="{% url 'citoyen_logout' %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">Déconnexion</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script des notifications -->
+    {% load static %}
+    <script >
+        document.addEventListener('DOMContentLoaded', () => {
+
+class NotificationManager {
+    constructor() {
+        this.panel = document.getElementById('notification-panel');
+        this.overlay = document.getElementById('notification-overlay');
+        this.list = document.getElementById('notification-list');
+        this.counter = document.getElementById('notification-count');
+        this.refreshInterval = 30000;
+        this.isOpen = false;
+        this.init();
+    }
+
+    init() {
+        this.fetchNotifications();
+        this.startAutoRefresh();
+    }
+
+    toggle() {
+        this.isOpen ? this.close() : this.open();
+    }
+
+    open() {
+        this.panel.classList.add('open');
+        if (this.overlay) {
+            this.overlay.style.display = 'block';
+        }
+        this.isOpen = true;
+        this.fetchNotifications();
+    }
+
+    close() {
+        this.panel.classList.remove('open');
+        if (this.overlay) {
+            this.overlay.style.display = 'none';
+        }
+        this.isOpen = false;
+    }
+
+    async fetchNotifications(onlyUnread = true) {
+        try {
+            const params = new URLSearchParams({ unread: onlyUnread, limit: 20 });
+            const response = await fetch(`{% url 'notifications_citoyen' %}?${params}`);
+            const data = await response.json();
+            this.updateUI(data);
+            this.updateCounter(data.unread_count);
+        } catch (error) {
+            console.error('Erreur chargement notifications:', error);
+            this.showError('Erreur lors du chargement des notifications');
+        }
+    }
+
+    updateUI(data) {
+        this.list.innerHTML = '';
+        if (!data.notifications || data.notifications.length === 0) {
+            this.list.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-bell-slash fa-2x mb-3"></i>
+                    <p>Aucune nouvelle notification</p>
+                </div>
+            `;
+            return;
+        }
+
+        const header = document.createElement('div');
+        header.className = 'd-flex justify-content-between align-items-center mb-3 pb-2 border-bottom';
+        header.innerHTML = `
+            <small class="text-muted">${data.count} notification(s)</small>
+            <button class="btn btn-sm btn-outline-primary" onclick="notificationManager.markAllAsRead()">
+                Tout marquer comme lu
+            </button>
+        `;
+        this.list.appendChild(header);
+
+        data.notifications.forEach(n => {
+            const item = this.createNotificationItem(n);
+            this.list.appendChild(item);
+        });
+    }
+
+    createNotificationItem(notification) {
+        const item = document.createElement('div');
+        item.className = `notification-item mb-3 p-3 border rounded ${this.getTypeClass(notification.type)} ${notification.read ? 'opacity-75' : ''}`;
+        item.dataset.id = notification.id;
+
+        const priorityBadge = notification.is_urgent ? 
+            '<span class="badge bg-danger ms-2">Urgent</span>' : '';
+
+        const actionButton = notification.action_url ? 
+            `<a href="${notification.action_url}" class="btn btn-sm btn-primary me-2">${notification.action_label || 'Voir'}</a>` : '';
+
+        item.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="notification-icon me-2">
+                    <i class="${this.getTypeIcon(notification.type)}"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-1">
+                        <strong class="notification-title">${notification.title}</strong>
+                        ${priorityBadge}
+                    </div>
+                    <p class="notification-message mb-2">${notification.message}</p>
+                    <div class="notification-meta d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>${notification.time}
+                        </small>
+                        <div class="notification-actions">
+                            ${actionButton}
+                            ${!notification.read ? 
+                                `<button class="btn btn-sm btn-outline-success" onclick="notificationManager.markAsRead(${notification.id})">
+                                    <i class="fas fa-check me-1"></i>Lu
+                                </button>` : 
+                                '<small class="text-success"><i class="fas fa-check me-1"></i>Lu</small>'
+                            }
+                            <button class="btn btn-sm btn-outline-secondary ms-1" onclick="notificationManager.archive(${notification.id})">
+                                <i class="fas fa-archive"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        return item;
+    }
+
+    getTypeClass(type) {
+        const classes = {
+            'success': 'border-success',
+            'error': 'border-danger',
+            'warning': 'border-warning',
+            'info': 'border-info',
+            'document': 'border-primary'
+        };
+        return classes[type] || 'border-secondary';
+    }
+
+    getTypeIcon(type) {
+        const icons = {
+            'success': 'fas fa-check-circle text-success',
+            'error': 'fas fa-exclamation-circle text-danger',
+            'warning': 'fas fa-exclamation-triangle text-warning',
+            'info': 'fas fa-info-circle text-info',
+            'document': 'fas fa-file-alt text-primary',
+            'system': 'fas fa-cog text-secondary'
+        };
+        return icons[type] || 'fas fa-bell text-secondary';
+    }
+
+    updateCounter(count) {
+        if (count > 0) {
+            this.counter.style.display = 'inline-block';
+            this.counter.textContent = count > 99 ? '99+' : count;
+        } else {
+            this.counter.style.display = 'none';
+        }
+    }
+
+    async markAsRead(id) {
+        try {
+            const response = await fetch(`/notifications/marquer-lue/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': this.getCSRFToken(),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                credentials: 'same-origin',
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                const item = document.querySelector(`[data-id="${id}"]`);
+                if (item) {
+                    item.classList.add('opacity-75');
+                    const button = item.querySelector('button[onclick*="markAsRead"]');
+                    if (button) {
+                        button.outerHTML = '<small class="text-success"><i class="fas fa-check me-1"></i>Lu</small>';
+                    }
+                }
+                this.updateCounter(data.unread_count);
+                this.showSuccess('Notification marquée comme lue');
+            } else {
+                this.showError(data.message);
+            }
+        } catch (error) {
+            console.error('Erreur marquage:', error);
+            this.showError('Erreur lors du marquage');
+        }
+    }
+
+    async markAllAsRead() {
+        try {
+            const response = await fetch('/notifications/marquer-toutes-lues/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': this.getCSRFToken(),
+                },
+                credentials: 'same-origin',
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                this.fetchNotifications();
+                this.showSuccess(`${data.count} notifications marquées comme lues`);
+            }
+        } catch (error) {
+            console.error('Erreur marquage en masse:', error);
+            this.showError('Erreur lors du marquage');
+        }
+    }
+
+    async archive(id) {
+        try {
+            const response = await fetch(`/notifications/archiver/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': this.getCSRFToken(),
+                },
+                credentials: 'same-origin',
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                const item = document.querySelector(`[data-id="${id}"]`);
+                if (item) {
+                    item.style.transition = 'opacity 0.3s ease';
+                    item.style.opacity = '0';
+                    setTimeout(() => item.remove(), 300);
+                }
+                this.showSuccess('Notification archivée');
+            }
+        } catch (error) {
+            this.showError('Erreur lors de l\'archivage');
+        }
+    }
+
+    startAutoRefresh() {
+        setInterval(() => {
+            if (!this.isOpen) {
+                this.fetchNotifications();
+            }
+        }, this.refreshInterval);
+    }
+
+    getCSRFToken() {
+        let token = null;
+        if (document.cookie) {
+            document.cookie.split(';').forEach(cookie => {
+                let [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') token = decodeURIComponent(value);
+            });
+        }
+        return token;
+    }
+
+    showSuccess(message) {
+        this.showToast(message, 'success');
+    }
+
+    showError(message) {
+        this.showToast(message, 'danger');
+    }
+
+    showToast(message, type) {
+        const toastContainer = document.querySelector('.toast-container') || this.createToastContainer();
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-bg-${type} border-0`;
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+
+    createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '1080';
+        document.body.appendChild(container);
+        return container;
+    }
+}
+
+// Initialisation globale et assignation à window
+window.notificationManager = new NotificationManager();
+
+console.log("✅ notifications.js chargé et notificationManager initialisé");
+
+// Fonctions globales pour le HTML
+window.toggleNotificationPanel = function() {
+    window.notificationManager.toggle();
+}
+window.closeNotificationPanel = function() {
+    window.notificationManager.close();
+}
+
+});
+    </script>
+</body>
+</html>

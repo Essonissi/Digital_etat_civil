@@ -1,0 +1,16 @@
+<ul class="list-group">
+  <li class="list-group-item"><strong>Type :</strong> {{ demande.document.type }}</li>
+  <li class="list-group-item"><strong>Date :</strong> {{ demande.date_demande|date:"d/m/Y H:i" }}</li>
+  <li class="list-group-item"><strong>Statut :</strong> 
+    {% if demande.statut == 'en_attente' %}
+      <span class="badge bg-warning text-dark">En attente</span>
+    {% elif demande.statut == 'validee' %}
+      <span class="badge bg-success">Validée</span>
+    {% elif demande.statut == 'rejetee' %}
+      <span class="badge bg-danger">Rejetée</span>
+    {% else %}
+      <span class="badge bg-secondary">{{ demande.statut }}</span>
+    {% endif %}
+  </li>
+  <li class="list-group-item"><strong>Motif :</strong> {{ demande.motif|default:"-" }}</li>
+</ul>
