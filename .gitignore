@@ -1,1 +1,4 @@
 .env
+/settings.py
+/media/*
+__pycache__/

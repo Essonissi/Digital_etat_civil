@@ -29,8 +29,8 @@ router.register(r'logs', LogViewSet)
 urlpatterns = [
     path('', home, name='home'),
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),                  # API REST
-    path('', include('comptes.urls')),           # Vues login, dashboard, etc.
+    path('api/', include(router.urls)),               
+    path('', include('comptes.urls')),           
     path('documents/', include('documents.urls')),
     path('documents-citoyen/', liste_documents_citoyen, name='documents_citoyen'),
     path('demandes/', include('demandes.urls')),

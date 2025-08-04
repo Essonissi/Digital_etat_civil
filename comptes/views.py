@@ -139,7 +139,7 @@ def verifier_email(request, uidb64, token):
     if user and default_token_generator.check_token(user, token):
         # Activer le compte ET marquer l'email comme vérifié
         user.email_verifie = True
-        user.is_active = True  # ✅ Activer le compte
+        user.is_active = True 
         user.save()
         
         messages.success(request, 
