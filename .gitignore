@@ -1,4 +1,4 @@
 .env
-/settings.py
+DigitEtatCiv/settings.py
 /media/*
-__pycache__/
+*/__pycache__/
