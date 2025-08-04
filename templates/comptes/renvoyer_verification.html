@@ -1,0 +1,72 @@
+<!-- templates/comptes/renvoyer_verification.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Renvoyer la vérification</title>
+    <meta charset="utf-8">
+    <style>
+        .form-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .back-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Renvoyer l'email de vérification</h2>
+        <p>Entrez votre adresse email pour recevoir un nouveau lien de vérification.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="email">Adresse email :</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <button type="submit" class="btn">Renvoyer le lien</button>
+        </form>
+        
+        <div class="back-link">
+            <a href="{% url 'citoyen_login' %}">← Retour à la connexion</a>
+        </div>
+    </div>
+</body>
+</html>

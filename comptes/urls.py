@@ -5,6 +5,8 @@ from .views import choisir_localisation, verifier_email
 from comptes.views import quartiers_par_commune
 
 
+
+
 urlpatterns = [
     path('dashboard/superadmin/', views.superadmin_dashboard, name='superadmin_dashboard'),
     path('dashboard/admin/', views.admin_dashboard, name='admin_dashboard'),
@@ -25,7 +27,5 @@ urlpatterns = [
     path('choisir-localisation/', choisir_localisation, name='choisir_localisation'),
     path('ajax/quartiers/', quartiers_par_commune, name='ajax_quartiers'),
     path('verifier-email/<uidb64>/<token>/', verifier_email, name='verifier_email'),
-
-
-
+    path('renvoyer-verification/', views.renvoyer_email_verification, name='renvoyer_verification'),
 ]

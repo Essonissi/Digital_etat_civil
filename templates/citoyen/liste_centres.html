@@ -1,0 +1,291 @@
+{% extends 'layouts/base_citoyen.html' %}
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête de la page -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1" style="color: #15706a; font-weight: 600;">
+                <i class="fas fa-map-marker-alt me-2"></i>Centres d'intérêt
+            </h2>
+            <p class="text-muted mb-0">Découvrez les lieux importants de votre commune</p>
+        </div>
+    </div>
+
+    <!-- Filtre -->
+    <div class="card mb-4" style="border: none; box-shadow: 0 2px 8px rgba(21,112,106,0.08);">
+        <div class="card-body">
+            <form method="get" class="row align-items-center">
+                <div class="col-md-4">
+                    <label for="type-select" class="form-label fw-semibold" style="color: #15706a;">
+                        <i class="fas fa-filter me-1"></i>Filtrer par type
+                    </label>
+                    <select name="type" id="type-select" class="form-select" onchange="this.form.submit()" 
+                            style="border-color: #15706a; focus: border-color: #1ec98e;">
+                        <option value="">Tous les types</option>
+                        {% for code, label in types %}
+                            <option value="{{ code }}" {% if code == type_filtre %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary" style="background: #15706a; border-color: #15706a;">
+                        <i class="fas fa-search me-1"></i>Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Solution hybride : Onglets pour basculer entre la carte et la liste -->
+    <div class="card mb-4" style="border: none; box-shadow: 0 2px 8px rgba(21,112,106,0.08);">
+        <div class="card-header" style="background: #f8f9fa; border-bottom: 2px solid #15706a;">
+            <ul class="nav nav-tabs card-header-tabs" id="viewTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="map-tab" data-bs-toggle="tab" href="#map-view" role="tab" 
+                       style="color: #15706a; font-weight: 500;">
+                        <i class="fas fa-map me-2"></i>Carte
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="list-tab" data-bs-toggle="tab" href="#list-view" role="tab" 
+                       style="color: #15706a; font-weight: 500;">
+                        <i class="fas fa-list me-2"></i>Liste ({{ centres|length }})
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body p-0">
+            <div class="tab-content" id="viewTabsContent">
+                <!-- Onglet Carte -->
+                <div class="tab-pane fade show active" id="map-view" role="tabpanel">
+                    <div id="map" style="height: 450px; border-radius: 0 0 0.375rem 0.375rem;"></div>
+                </div>
+                
+                <!-- Onglet Liste -->
+                <div class="tab-pane fade" id="list-view" role="tabpanel">
+                    {% if centres %}
+                        <div class="list-group list-group-flush">
+                            {% for centre in centres %}
+                            <div class="list-group-item border-0 py-3" style="border-left: 4px solid #1ec98e !important;">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-building text-primary me-2" style="color: #15706a !important;"></i>
+                                            <h6 class="mb-0 fw-bold" style="color: #15706a;">{{ centre.nom }}</h6>
+                                            <span class="badge ms-2" style="background: #1ec98e;">{{ centre.get_type_display }}</span>
+                                        </div>
+                                        <p class="mb-2 text-muted" style="font-size: 0.95rem;">
+                                            <i class="fas fa-info-circle me-1" style="color: #15706a;"></i>
+                                            {{ centre.description }}
+                                        </p>
+                                        <div class="d-flex align-items-center text-muted small">
+                                            <i class="fas fa-map-pin me-1" style="color: #15706a;"></i>
+                                            <span>{{ centre.latitude|floatformat:6 }}, {{ centre.longitude|floatformat:6 }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <a target="_blank" 
+                                           href="https://www.google.com/maps?q={{ centre.latitude|stringformat:"f" }},{{ centre.longitude|stringformat:"f" }}" 
+                                           class="btn btn-primary btn-sm"
+                                           style="background: #15706a; border-color: #15706a;">
+                                            <i class="fas fa-route me-1"></i>Itinéraire
+                                            <i class="fas fa-external-link-alt ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-map-marker-alt fa-3x text-muted mb-3" style="color: #15706a !important; opacity: 0.3;"></i>
+                            <h5 class="text-muted">Aucun centre trouvé</h5>
+                            <p class="text-muted">Essayez de modifier les filtres pour voir plus de résultats.</p>
+                            <a href="?" class="btn btn-outline-primary" style="color: #15706a; border-color: #15706a;">
+                                <i class="fas fa-refresh me-1"></i>Réinitialiser les filtres
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles personnalisés pour cette page -->
+<style>
+    /* Ajustements spécifiques pour les cartes */
+    .card {
+        border-radius: 0.75rem;
+        transition: all 0.2s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px rgba(21,112,106,0.15) !important;
+    }
+    
+    /* Style pour les badges */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.4em 0.8em;
+        border-radius: 1rem;
+    }
+    
+    /* Amélioration des boutons */
+    .btn-primary:hover {
+        background: #1ec98e !important;
+        border-color: #1ec98e !important;
+        transform: translateY(-1px);
+    }
+    
+    /* Style pour les éléments de la liste */
+    .list-group-item {
+        transition: all 0.2s ease;
+    }
+    
+    .list-group-item:hover {
+        background-color: rgba(21, 112, 106, 0.02);
+        border-left-width: 6px !important;
+        padding-left: calc(1rem - 2px) !important;
+    }
+    
+    /* Amélioration du select */
+    .form-select:focus {
+        border-color: #1ec98e;
+        box-shadow: 0 0 0 0.2rem rgba(30, 201, 142, 0.25);
+    }
+    
+    /* Style pour les icônes */
+    .fas {
+        transition: all 0.2s ease;
+    }
+    
+    /* Animation pour les éléments de liste */
+    .list-group-item {
+        animation: fadeInUp 0.5s ease forwards;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Style pour les onglets */
+    .nav-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #15706a;
+        background: transparent;
+        border-bottom: 3px solid #15706a;
+    }
+    
+    .nav-tabs .nav-link:hover:not(.active) {
+        color: #15706a;
+        border-bottom: 3px solid rgba(21, 112, 106, 0.2);
+    }
+    
+    /* Responsive pour mobile */
+    @media (max-width: 768px) {
+        .d-flex.justify-content-between {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+        
+        .text-end {
+            text-align: left !important;
+            margin-top: 1rem;
+        }
+    }
+</style>
+
+<!-- Leaflet JS pour afficher la carte -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialisation de la carte
+        var map = L.map('map').setView([6.1319, 1.2228], 13); // Par défaut sur Lomé
+
+        // Ajout de la couche de tuiles avec un style personnalisé
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Style personnalisé pour les marqueurs
+        var customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<i class="fas fa-map-marker-alt" style="color: #15706a; font-size: 24px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);"></i>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 24],
+            popupAnchor: [0, -24]
+        });
+
+        // Ajout des marqueurs pour chaque centre
+        var markers = [];
+        {% for centre in centres %}
+            var marker = L.marker([{{ centre.latitude }}, {{ centre.longitude }}], {icon: customIcon})
+                .addTo(map)
+                .bindPopup(`
+                    <div style="min-width: 250px;">
+                        <h6 style="color: #15706a; margin-bottom: 8px;">
+                            <i class="fas fa-building me-1"></i>{{ centre.nom }}
+                        </h6>
+                        <p style="margin-bottom: 8px; font-size: 0.9rem;">{{ centre.description }}</p>
+                        <span class="badge" style="background: #1ec98e; margin-bottom: 10px;">{{ centre.get_type_display }}</span>
+                        <br>
+                        <a href="https://www.google.com/maps?q={{ centre.latitude|stringformat:"f" }},{{ centre.longitude|stringformat:"f" }}" 
+                           target="_blank" 
+                           class="btn btn-sm btn-primary" 
+                           style="background: #15706a; border-color: #15706a;">
+                            <i class="fas fa-route me-1"></i>Itinéraire
+                        </a>
+                    </div>
+                `);
+            markers.push(marker);
+        {% endfor %}
+
+        // Ajuster la vue pour inclure tous les marqueurs
+        if (markers.length > 0) {
+            var group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+
+        // Animation des éléments de la liste
+        const listItems = document.querySelectorAll('.list-group-item');
+        listItems.forEach((item, index) => {
+            item.style.animationDelay = `${index * 0.1}s`;
+        });
+    });
+</script>
+
+<!-- Style pour les marqueurs personnalisés -->
+<style>
+    .custom-marker {
+        background: transparent;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(21, 112, 106, 0.2);
+    }
+    
+    .leaflet-popup-tip {
+        background: white;
+    }
+</style>
+{% endblock %}

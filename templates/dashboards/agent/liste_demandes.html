@@ -4,185 +4,831 @@
 
 {% block extra_css %}
 <style>
-  .content-wrapper {
-    padding: 2rem;
+  .stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
   }
   
-  .page-title {
-    font-size: 2.5rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 2rem;
+  .stat-item {
     text-align: center;
+  }
+  
+  .stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    display: block;
+    line-height: 1;
+  }
+  
+  .stat-label {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 0.3rem;
+  }
+  
+  .filter-section {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
   }
   
   .table-container {
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     overflow: hidden;
     border: 1px solid #e9ecef;
   }
   
+  .table-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
   .table {
     margin-bottom: 0;
+    font-size: 0.85rem;
   }
   
   .table thead th {
-    background: #f8f9fa;
+    background: transparent;
     border: none;
-    padding: 1.2rem 1rem;
+    padding: 0.5rem 0.4rem;
     font-weight: 600;
     color: #495057;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
   
   .table tbody tr {
     border: none;
-    transition: background-color 0.3s ease;
+    transition: all 0.2s ease;
+    cursor: pointer;
   }
   
   .table tbody tr:hover {
-    background-color: #f8f9ff;
+    background: linear-gradient(135deg, #f8f9ff 0%, #fff5f5 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
   
   .table tbody td {
-    padding: 1.2rem 1rem;
+    padding: 0.5rem 0.4rem;
     border: none;
     border-bottom: 1px solid #f1f3f4;
     vertical-align: middle;
   }
   
-  .badge {
-    padding: 0.5rem 1rem;
+  /* Nouveaux styles pour les badges de statut selon votre code couleur */
+  .status-badge {
+    padding: 0.25rem 0.6rem;
     border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 70px;
+    justify-content: center;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
   
-  .badge.bg-warning {
-    background: #ffc107 !important;
-    color: #212529 !important;
-  }
-  
-  .badge.bg-success {
-    background: #28a745 !important;
-  }
-  
-  .badge.bg-danger {
-    background: #dc3545 !important;
-  }
-  
-  .badge.bg-secondary {
-    background: #6c757d !important;
-  }
-  
-  .btn-outline-primary {
-    border: 2px solid #007bff;
-    color: #007bff;
-    padding: 0.5rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    text-decoration: none;
-  }
-  
-  .btn-outline-primary:hover {
-    background: #007bff;
-    border-color: #007bff;
+  /* Statut Rejetée - Rouge */
+  .status-rejected {
+    background-color: #dc3545;
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  }
+  
+  .status-rejected:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+  }
+  
+  /* Statut En attente - Jaune/Orange */
+  .status-pending {
+    background-color: #ffc107;
+    color: #212529;
+  }
+  
+  .status-pending:hover {
+    background-color: #e0a800;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3);
+  }
+  
+  /* Statut Validée - Vert */
+  .status-approved {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .status-approved:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+  }
+  
+  /* Statut Traitée - Bleu cyan */
+  .status-transit {
+    background-color: #17a2b8;
+    color: white;
+  }
+  
+  .status-transit:hover {
+    background-color: #138496;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(23, 162, 184, 0.3);
+  }
+  
+  .status-default {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  .status-default:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(108, 117, 125, 0.3);
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 0.3rem;
+    justify-content: center;
+  }
+  
+  .btn-action {
+    padding: 0.25rem 0.6rem;
+    border-radius: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  
+  .btn-view {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+  }
+  
+  .btn-view:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+    color: white;
+  }
+  
+  .btn-quick-action {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+  }
+  
+  .btn-quick-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
+    color: white;
   }
   
   .user-info {
-    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  
+  .user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    box-shadow: 0 1px 6px rgba(102, 126, 234, 0.3);
+  }
+  
+  .user-details {
+    line-height: 1.3;
   }
   
   .user-name {
     font-weight: 600;
     color: #495057;
     display: block;
+    margin-bottom: 1px;
+    font-size: 0.85rem;
   }
   
   .user-username {
     color: #6c757d;
-    font-size: 0.85rem;
-  }
-  
-  .empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: #6c757d;
-    font-style: italic;
+    font-size: 0.7rem;
   }
   
   .document-type {
     font-weight: 600;
     color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  
+  .document-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+  
+  .doc-certificate {
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    color: white;
+  }
+  
+  .doc-passport {
+    background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+    color: white;
+  }
+  
+  .doc-id {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    color: white;
+  }
+  
+  .doc-default {
+    background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+    color: white;
+  }
+  
+  .document-info {
+    flex: 1;
+  }
+  
+  .document-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1px;
+  }
+  
+  .document-id {
+    font-size: 0.7rem;
+    color: #6c757d;
   }
   
   .date-display {
     color: #6c757d;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    text-align: center;
+  }
+  
+  .date-time {
+    font-weight: 600;
+    display: block;
+    color: #495057;
+    margin-bottom: 1px;
+  }
+  
+  .date-relative {
+    font-size: 0.7rem;
+    opacity: 0.8;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #6c757d;
+  }
+  
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+  }
+  
+  .search-box {
+    position: relative;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    z-index: 5;
+  }
+  
+  .form-control {
+    padding: 0.5rem 0.8rem 0.5rem 2.5rem;
+    border-radius: 20px;
+    border: 2px solid #e9ecef;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+  }
+  
+  .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
+  }
+  
+  .form-select {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  
+  .filter-badge {
+    background: #007bff;
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    margin-right: 0.3rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+  }
+  
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  
+  .quick-stats {
+    display: none;
+  }
+  
+  @media (min-width: 768px) {
+    .quick-stats {
+      display: flex;
+    }
+  }
+  
+  /* Ajustements pour une meilleure utilisation de l'espace */
+  .container-fluid {
+    padding: 1rem !important;
+  }
+  
+  .table th:nth-child(1) { width: 25%; }
+  .table th:nth-child(2) { width: 20%; }
+  .table th:nth-child(3) { width: 15%; }
+  .table th:nth-child(4) { width: 15%; }
+  .table th:nth-child(5) { width: 25%; }
+  
+  /* Réduction générale des marges et paddings */
+  .mb-4 { margin-bottom: 1rem !important; }
+  .mb-1 { margin-bottom: 0.5rem !important; }
+  .mb-0 { margin-bottom: 0 !important; }
+  
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+  }
+  
+  h5 {
+    font-size: 1.1rem;
+  }
+  
+  .breadcrumb {
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  
+  .form-label {
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="content-wrapper">
-  <h2 class="page-title">Demandes de mon quartier</h2>
-  
+<div class="container-fluid px-3 py-2">
+  <!-- En-tête avec breadcrumb -->
+  <div class="row mb-3">
+    <div class="col-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item active" aria-current="page">Demandes de mon quartier</li>
+        </ol>
+      </nav>
+      
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <h1 class="mb-1">Demandes de mon quartier</h1>
+          <p class="text-muted mb-0" style="font-size: 0.9rem;">Gérez les demandes de documents de votre secteur</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistiques rapides -->
+  <div class="stats-card">
+    <div class="row">
+      <div class="col-md-3 col-6">
+        <div class="stat-item">
+          <span class="stat-number" id="totalCount">{{ demandes|length }}</span>
+          <div class="stat-label">Total demandes</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-item">
+          <span class="stat-number text-warning" id="pendingCount">-</span>
+          <div class="stat-label">En attente</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-item">
+          <span class="stat-number text-success" id="approvedCount">-</span>
+          <div class="stat-label">Validées</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-item">
+          <span class="stat-number text-danger" id="rejectedCount">-</span>
+          <div class="stat-label">Rejetées</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section de filtres -->
+  <div class="filter-section">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label fw-semibold">Rechercher</label>
+        <div class="search-box">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" class="form-control" id="searchInput" 
+                 placeholder="Rechercher par nom, type de document...">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Statut</label>
+        <select class="form-select" id="statusFilter" style="border-radius: 20px;">
+          <option value="">Tous les statuts</option>
+          <option value="en_attente">En attente</option>
+          <option value="validee">Validées</option>
+          <option value="rejetee">Rejetées</option>
+          <option value="traitee">Traitées</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-semibold">Type de document</label>
+        <select class="form-select" id="typeFilter" style="border-radius: 20px;">
+          <option value="">Tous les types</option>
+          {% for demande in demandes %}
+            <option value="{{ demande.document.type }}">{{ demande.document.type }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="button" class="btn btn-outline-secondary w-100" 
+                onclick="clearFilters()" style="border-radius: 20px;">
+          <i class="fas fa-times me-1"></i>Réinitialiser
+        </button>
+      </div>
+    </div>
+    
+    <!-- Filtres actifs -->
+    <div id="activeFilters" class="mt-2"></div>
+  </div>
+
+  <!-- Tableau des demandes -->
   <div class="table-container">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Date</th>
-          <th>Statut</th>
-          <th>Demandeur</th>
-          <th>Motif</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for demande in demandes %}
+    <div class="table-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>Liste des demandes
+          <span class="badge bg-primary ms-2" id="visibleCount">{{ demandes|length }}</span>
+        </h5>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary" onclick="toggleView('card')">
+            <i class="fas fa-th-large"></i>
+          </button>
+          <button class="btn btn-sm btn-primary" onclick="toggleView('table')">
+            <i class="fas fa-table"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="table-responsive">
+      <table class="table" id="demandesTable">
+        <thead>
           <tr>
-            <td>
-              <span class="document-type">{{ demande.document.type }}</span>
-            </td>
-            <td>
-              <span class="date-display">{{ demande.date_demande|date:"d/m/Y H:i" }}</span>
-            </td>
-            <td>
-              {% if demande.statut == 'en_attente' %}
-                <span class="badge bg-warning text-dark">En attente</span>
-              {% elif demande.statut == 'validee' %}
-                <span class="badge bg-success">Validée</span>
-              {% elif demande.statut == 'rejetee' %}
-                <span class="badge bg-danger">Rejetée</span>
-              {% else %}
-                <span class="badge bg-secondary">{{ demande.statut }}</span>
-              {% endif %}
-            </td>
-            <td>
-              <div class="user-info">
-                <span class="user-name">{{ demande.user.first_name }} {{ demande.user.last_name }}</span>
-                <small class="user-username">{{ demande.user.username }}</small>
-              </div>
-            </td>
-            <td>{{ demande.motif|default:"-" }}</td>
-            <td>
-              <a href="{% url 'agent:detail_demande' demande.id %}" class="btn btn-outline-primary">Voir</a>
-            </td>
+            <th>
+              <i class="fas fa-file-alt me-1"></i>Document
+            </th>
+            <th>
+              <i class="fas fa-user me-1"></i>Demandeur
+            </th>
+            <th>
+              <i class="fas fa-calendar me-1"></i>Date 
+            </th>
+            <th>
+              <i class="fas fa-info-circle me-1"></i>Statut
+            </th>
+            <th class="text-center">
+              <i class="fas fa-tools me-1"></i>Actions
+            </th>
           </tr>
-        {% empty %}
-          <tr>
-            <td colspan="6" class="empty-state">Aucune demande trouvée.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {% for demande in demandes %}
+            <tr class="demande-row" 
+                data-status="{{ demande.statut }}" 
+                data-type="{{ demande.document.type }}"
+                data-search="{{ demande.user.first_name|lower }} {{ demande.user.last_name|lower }} {{ demande.document.type|lower }}">
+              <td>
+                <div class="document-type">
+                  <div class="document-icon {% if 'certificat' in demande.document.type|lower %}doc-certificate{% elif 'passeport' in demande.document.type|lower %}doc-passport{% elif 'identité' in demande.document.type|lower %}doc-id{% else %}doc-default{% endif %}">
+                    {% if 'certificat' in demande.document.type|lower %}
+                      <i class="fas fa-certificate"></i>
+                    {% elif 'passeport' in demande.document.type|lower %}
+                      <i class="fas fa-passport"></i>
+                    {% elif 'identité' in demande.document.type|lower %}
+                      <i class="fas fa-id-card"></i>
+                    {% else %}
+                      <i class="fas fa-file-alt"></i>
+                    {% endif %}
+                  </div>
+                  <div class="document-info">
+                    <div class="document-title">{{ demande.document.type }}</div>
+                    <div class="document-id">#{{ demande.id }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="user-info">
+                  <div class="user-avatar">
+                    {{ demande.user.first_name|first }}{{ demande.user.last_name|first }}
+                  </div>
+                  <div class="user-details">
+                    <span class="user-name">{{ demande.user.first_name }} {{ demande.user.last_name }}</span>
+                    <span class="user-username">{{ demande.user.username }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="date-display">
+                  <span class="date-time">{{ demande.date_demande|date:"d/m/Y" }}</span>
+                  <span class="date-relative">{{ demande.date_demande|date:"H:i" }}</span>
+                </div>
+              </td>
+              <td>
+                {% if demande.statut == 'en_attente' %}
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-medium">
+                          <i class="fas fa-hourglass-half me-1"></i>En attente
+                        </span>
+                      {% elif demande.statut == 'validee' %}
+                        <span class="badge bg-success rounded-pill px-3 py-2 fw-medium">
+                          <i class="fas fa-check-circle me-1"></i>Validée
+                        </span>
+                      {% elif demande.statut == 'traitee' %}
+                        <span class="badge bg-info rounded-pill px-3 py-2 fw-medium">
+                          <i class="fas fa-clipboard-check me-1"></i>Traitée
+                        </span>
+                      {% elif demande.statut == 'rejetee' %}
+                        <span class="badge bg-danger rounded-pill px-3 py-2 fw-medium">
+                          <i class="fas fa-times-circle me-1"></i>Rejetée
+                        </span>
+                      {% else %}
+                        <span class="badge bg-secondary rounded-pill px-3 py-2 fw-medium">{{ demande.statut }}</span>
+                      {% endif %}
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <a href="{% url 'agent:detail_demande' demande.id %}" class="btn-action btn-view">
+                    <i class="fas fa-eye"></i>Voir
+                  </a>
+                  {% if demande.statut == 'en_attente' %}
+                    <button type="button" class="btn-action btn-quick-action"
+                            onclick="quickAction('{{ demande.id }}', 'valider')">
+                      <i class="fas fa-check"></i>Valider
+                    </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr id="emptyRow">
+              <td colspan="5">
+                <div class="empty-state">
+                  <i class="fas fa-inbox empty-icon"></i>
+                  <h5>Aucune demande trouvée</h5>
+                  <p>Il n'y a actuellement aucune demande dans votre secteur.</p>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination (si nécessaire) -->
+  <div class="pagination-container">
+    <!-- Pagination Django à ajouter ici si nécessaire -->
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Calculer les statistiques
+  updateStatistics();
+  
+  // Initialiser les filtres
+  initializeFilters();
+  
+  // Actualisation automatique toutes les 30 secondes
+  setInterval(function() {
+    // Ici, vous pourriez implémenter un appel AJAX pour actualiser les données
+    console.log('Actualisation automatique...');
+  }, 30000);
+});
+
+function updateStatistics() {
+  const rows = document.querySelectorAll('.demande-row');
+  let pending = 0, approved = 0, rejected = 0, treated = 0;
+  
+  rows.forEach(row => {
+    const status = row.dataset.status;
+    if (status === 'en_attente') pending++;
+    else if (status === 'validee') approved++;
+    else if (status === 'rejetee') rejected++;
+    else if (status === 'traitee') treated++;
+  });
+  
+  document.getElementById('pendingCount').textContent = pending;
+  document.getElementById('approvedCount').textContent = approved;
+  document.getElementById('rejectedCount').textContent = rejected;
+}
+
+function initializeFilters() {
+  const searchInput = document.getElementById('searchInput');
+  const statusFilter = document.getElementById('statusFilter');
+  const typeFilter = document.getElementById('typeFilter');
+  
+  // Supprimer les doublons dans le filtre de type
+  const typeOptions = Array.from(typeFilter.options);
+  const uniqueTypes = [...new Set(typeOptions.map(opt => opt.value))];
+  typeFilter.innerHTML = '<option value="">Tous les types</option>';
+  uniqueTypes.forEach(type => {
+    if (type) {
+      const option = document.createElement('option');
+      option.value = type;
+      option.textContent = type;
+      typeFilter.appendChild(option);
+    }
+  });
+  
+  searchInput.addEventListener('input', applyFilters);
+  statusFilter.addEventListener('change', applyFilters);
+  typeFilter.addEventListener('change', applyFilters);
+}
+
+function applyFilters() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const statusFilter = document.getElementById('statusFilter').value;
+  const typeFilter = document.getElementById('typeFilter').value;
+  const rows = document.querySelectorAll('.demande-row');
+  
+  let visibleCount = 0;
+  
+  rows.forEach(row => {
+    const searchData = row.dataset.search;
+    const status = row.dataset.status;
+    const type = row.dataset.type;
+    
+    const matchesSearch = !searchTerm || searchData.includes(searchTerm);
+    const matchesStatus = !statusFilter || status === statusFilter;
+    const matchesType = !typeFilter || type === typeFilter;
+    
+    if (matchesSearch && matchesStatus && matchesType) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  
+  document.getElementById('visibleCount').textContent = visibleCount;
+  updateActiveFilters();
+  
+  // Gérer l'état vide
+  const emptyRow = document.getElementById('emptyRow');
+  if (emptyRow) {
+    emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+  }
+}
+
+function updateActiveFilters() {
+  const container = document.getElementById('activeFilters');
+  const searchTerm = document.getElementById('searchInput').value;
+  const statusFilter = document.getElementById('statusFilter');
+  const typeFilter = document.getElementById('typeFilter');
+  
+  let filtersHtml = '';
+  
+  if (searchTerm) {
+    filtersHtml += `<span class="filter-badge">
+      <i class="fas fa-search"></i>
+      Recherche: "${searchTerm}"
+      <i class="fas fa-times ms-1" onclick="clearSearch()"></i>
+    </span>`;
+  }
+  
+  if (statusFilter.value) {
+    filtersHtml += `<span class="filter-badge">
+      <i class="fas fa-filter"></i>
+      Statut: ${statusFilter.options[statusFilter.selectedIndex].text}
+      <i class="fas fa-times ms-1" onclick="clearStatusFilter()"></i>
+    </span>`;
+  }
+  
+  if (typeFilter.value) {
+    filtersHtml += `<span class="filter-badge">
+      <i class="fas fa-file-alt"></i>
+      Type: ${typeFilter.value}
+      <i class="fas fa-times ms-1" onclick="clearTypeFilter()"></i>
+    </span>`;
+  }
+  
+  container.innerHTML = filtersHtml;
+  container.style.display = filtersHtml ? 'block' : 'none';
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('statusFilter').value = '';
+  document.getElementById('typeFilter').value = '';
+  applyFilters();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  applyFilters();
+}
+
+function clearStatusFilter() {
+  document.getElementById('statusFilter').value = '';
+  applyFilters();
+}
+
+function clearTypeFilter() {
+  document.getElementById('typeFilter').value = '';
+  applyFilters();
+}
+
+function changeStatus(demandeId, currentStatus) {
+  // Afficher un menu contextuel pour changer le statut
+  const statuses = [
+    { value: 'en_attente', label: 'En attente', class: 'status-pending', icon: 'fas fa-clock' },
+    { value: 'validee', label: 'Validée', class: 'status-approved', icon: 'fas fa-check-circle' },
+    { value: 'rejetee', label: 'Rejetée', class: 'status-rejected', icon: 'fas fa-times-circle' },
+    { value: 'traitee', label: 'Traitée', class: 'status-transit', icon: 'fas fa-check-double' }
+  ];
+  
+  let options = '';
+  statuses.forEach(status => {
+    if (status.value !== currentStatus) {
+      options += `<div class="status-option" onclick="updateStatus('${demandeId}', '${status.value}')">
+        <i class="${status.icon}"></i> ${status.label}
+      </div>`;
+    }
+  });
+}
+</script>
 {% endblock %}

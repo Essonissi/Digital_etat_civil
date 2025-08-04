@@ -5,53 +5,549 @@
 <div class="container mt-4">
   <div class="row justify-content-center">
     <div class="col-lg-8">
-      <h3 class="mb-4 text-success">
-        <i class="fas fa-file-alt me-2"></i>Nouvelle demande de document
-      </h3>
+      <!-- En-tête avec breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item active" aria-current="page">Nouvelle demande</li>
+        </ol>
+      </nav>
 
-      <form method="POST" enctype="multipart/form-data" class="border p-4 shadow-sm bg-white rounded">
-        {% csrf_token %}
-
-        <!-- Type de document -->
-        <div class="mb-3">
-          <label for="document_id" class="form-label">Type de document <span class="text-danger">*</span></label>
-          <select name="document_id" id="document_id" class="form-select" required>
-            <option value="">-- Sélectionner un document --</option>
-            {% for doc in documents %}
-              <option value="{{ doc.id }}">{{ doc.type }}</option>
-            {% endfor %}
-          </select>
+      <!-- Titre principal -->
+      <div class="d-flex align-items-center mb-4">
+        <div class="p-3 rounded-circle me-3" style="background-color: rgba(21, 112, 106, 0.1);">
+          <i class="fas fa-file-alt fs-4" style="color: #15706a;"></i>
         </div>
-
-        <!-- Motif de la demande -->
-        <div class="mb-3">
-          <label for="motif" class="form-label">Motif de la demande <small class="text-muted">(facultatif)</small></label>
-          <textarea name="motif" id="motif" class="form-control" rows="3" placeholder="Ex : Pour un dossier de bourse, voyage, mariage, etc."></textarea>
+        <div>
+          <h3 class="mb-1" style="color: #15706a;">Nouvelle demande de document</h3>
+          <p class="text-muted mb-0">Remplissez le formulaire ci-dessous pour soumettre votre demande</p>
         </div>
+      </div>
 
-        <!-- Fichiers -->
-        <div class="mb-3">
-          <label for="fichiers" class="form-label">Pièces justificatives <span class="text-danger">*</span></label>
-          <input type="file" name="fichiers" id="fichiers" class="form-control" multiple required>
-          <small class="form-text text-muted">Formats acceptés : PDF, JPG, PNG (max 5 Mo chacun)</small>
+      <!-- Carte d'information -->
+      <div class="alert border-0 mb-4" style="background-color: rgba(21, 112, 106, 0.1); border-left: 4px solid #15706a !important;" role="alert">
+        <div class="d-flex">
+          <i class="fas fa-info-circle me-3 mt-1" style="color: #15706a;"></i>
+          <div>
+            <h6 class="alert-heading mb-2" style="color: #15706a;">Informations importantes</h6>
+            <ul class="mb-0 small">
+              <li>Vérifiez que tous les documents requis sont disponibles avant de commencer</li>
+              <li>Les fichiers doivent être lisibles et de bonne qualité</li>
+              <li>Vous recevrez une confirmation par email une fois votre demande soumise</li>
+            </ul>
+          </div>
         </div>
+      </div>
 
-        <!-- Confirmation -->
-        <div class="form-check mb-3">
-          <input class="form-check-input" type="checkbox" name="confirmation" id="confirmation" required>
-          <label class="form-check-label" for="confirmation">
-            Je certifie que les informations fournies sont exactes et complètes.
-          </label>
-        </div>
+      <!-- Formulaire principal -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <form method="POST" enctype="multipart/form-data" id="demandeForm">
+            {% csrf_token %}
 
-        <!-- Submit -->
-        <div class="d-grid">
-          <button type="submit" class="btn btn-success btn-lg">
-            <i class="fas fa-paper-plane me-2"></i>Soumettre la demande
-          </button>
+            <!-- Étape 1: Sélection du document -->
+            <div class="mb-4">
+              <div class="d-flex align-items-center mb-3">
+                <span class="badge rounded-circle me-3 p-2" style="background-color: #15706a; color: white;">1</span>
+                <h5 class="mb-0">Sélection du document</h5>
+              </div>
+              
+              <div class="ps-5">
+                <label for="document_id" class="form-label fw-semibold">
+                  Type de document <span class="text-danger">*</span>
+                </label>
+                <select name="document_id" id="document_id" class="form-select form-select-lg" required style="border-color: #15706a; border-width: 2px;">
+                  <option value="">-- Sélectionner un document --</option>
+                  {% for doc in documents %}
+                    <option value="{{ doc.id }}" data-description="{{ doc.description|default:'' }}">
+                      {{ doc.type }}
+                    </option>
+                  {% endfor %}
+                </select>
+                
+                <!-- Description dynamique du document sélectionné -->
+                <div id="document-description" class="mt-2 p-3 rounded d-none" style="background-color: rgba(21, 112, 106, 0.05); border: 1px solid rgba(21, 112, 106, 0.2);">
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle me-1" style="color: #15706a;"></i>
+                    <span id="description-text"></span>
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Étape 2: Upload des fichiers -->
+            <div class="mb-4">
+              <div class="d-flex align-items-center mb-3">
+                <span class="badge rounded-circle me-3 p-2" style="background-color: #15706a; color: white;">2</span>
+                <h5 class="mb-0">Pièces justificatives</h5>
+              </div>
+              
+              <div class="ps-5">
+                <label for="fichiers" class="form-label fw-semibold">
+                  Fichiers <span class="text-danger">*</span>
+                </label>
+                
+                <!-- Zone de glisser-déposer corrigée -->
+                <div class="upload-zone border-2 border-dashed rounded p-4 text-center mb-3" 
+                     id="uploadZone"
+                     style="border-color: #dee2e6; background-color: #f8f9fa; cursor: pointer; transition: all 0.3s ease;">
+                  <div class="upload-content">
+                    <i class="text-muted fs-1 mb-3 fas fa-cloud-upload-alt"></i>
+                    <h6 class="text-muted mb-2">Glissez et déposez vos fichiers ici</h6>
+                    <p class="text-muted mb-3">ou</p>
+                    <input type="file" name="fichiers" id="fichiers" class="d-none" multiple required 
+                           accept=".pdf,.jpg,.jpeg,.png">
+                    <label for="fichiers" class="btn btn-outline-secondary">
+                      <i class="fas fa-plus me-2"></i>Choisir des fichiers
+                    </label>
+                  </div>
+                </div>
+                
+                <!-- Liste des fichiers sélectionnés -->
+                <div id="filesList" class="mb-3"></div>
+                
+                <!-- Informations sur les formats -->
+                <div class="alert alert-light border mb-0" style="border-color: rgba(21, 112, 106, 0.25) !important;">
+                  <div class="row g-3 small">
+                    <div class="col-md-6">
+                      <i class="fas fa-check-circle me-2" style="color: #15706a;"></i>
+                      <strong>Formats acceptés :</strong> PDF, JPG, PNG
+                    </div>
+                    <div class="col-md-6">
+                      <i class="fas fa-weight-hanging me-2" style="color: #15706a;"></i>
+                      <strong>Taille max :</strong> 5 Mo par fichier
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Étape 3: Confirmation -->
+            <div class="mb-4">
+              <div class="d-flex align-items-center mb-3">
+                <span class="badge rounded-circle me-3 p-2" style="background-color: #15706a; color: white;">3</span>
+                <h5 class="mb-0">Confirmation</h5>
+              </div>
+              
+              <div class="ps-5">
+                <div class="form-check p-3 border rounded bg-light">
+                  <input class="form-check-input" type="checkbox" name="confirmation" id="confirmation" required>
+                  <label class="form-check-label fw-semibold" for="confirmation">
+                    <i class="fas fa-shield-alt me-2" style="color: #15706a;"></i>
+                    Je certifie que les informations fournies sont exactes et complètes.
+                  </label>
+                  <div class="form-text mt-2">
+                    En cochant cette case, vous vous engagez sur la véracité des documents fournis.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="d-flex gap-3 justify-content-end pt-3 border-top">
+              <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                <i class="fas fa-arrow-left me-2"></i>Retour
+              </button>
+              <button type="submit" class="btn btn-lg px-4" id="submitBtn" style="background-color: #15706a; border-color: #15706a; color: white;">
+                <i class="fas fa-paper-plane me-2"></i>
+                <span>Soumettre la demande</span>
+                <div class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></div>
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
+
+      <!-- Aide et support -->
+      <div class="mt-4">
+        <div class="card" style="border-color: rgba(21, 112, 106, 0.25);">
+          <div class="card-body">
+            <h6 class="card-title" style="color: #15706a;">
+              <i class="fas fa-question-circle me-2"></i>Besoin d'aide ?
+            </h6>
+            <p class="card-text small mb-3">
+              Si vous rencontrez des difficultés pour remplir ce formulaire ou avez des questions 
+              sur les documents requis, n'hésitez pas à nous contacter.
+            </p>
+            <div class="d-flex gap-2">
+              <a href="#" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-envelope me-1"></i>Nous contacter
+              </a>
+              <a href="#" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-book me-1"></i>FAQ
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+<style>
+/* Zone d'upload - États par défaut */
+.upload-zone {
+  transition: all 0.3s ease;
+}
+
+/* Au survol */
+.upload-zone:hover {
+  border-color: #15706a !important;
+  background-color: rgba(21, 112, 106, 0.05) !important;
+}
+
+.upload-zone:hover .fas {
+  color: #15706a !important;
+}
+
+.upload-zone:hover h6 {
+  color: #15706a !important;
+}
+
+.upload-zone:hover .btn-outline-secondary {
+  border-color: #15706a;
+  color: #15706a;
+}
+
+/* Pendant le drag over */
+.upload-zone.dragover {
+  border-color: #1ec98e !important;
+  background-color: rgba(30, 201, 142, 0.1) !important;
+  transform: scale(1.02);
+}
+
+.upload-zone.dragover .fas {
+  color: #1ec98e !important;
+}
+
+.upload-zone.dragover h6 {
+  color: #1ec98e !important;
+}
+
+/* Quand des fichiers sont sélectionnés */
+.upload-zone.has-files {
+  border-color: #1ec98e !important;
+  background-color: rgba(30, 201, 142, 0.05) !important;
+}
+
+.upload-zone.has-files .fas {
+  color: #1ec98e !important;
+}
+
+.upload-zone.has-files h6 {
+  color: #1ec98e !important;
+}
+
+.file-item {
+  transition: all 0.3s ease;
+}
+
+.file-item:hover {
+  background-color: rgba(21, 112, 106, 0.05) !important;
+  border-color: #15706a !important;
+}
+
+.badge {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Focus states cohérents avec le thème */
+.form-select:focus,
+.form-control:focus,
+.form-check-input:focus {
+  border-color: #15706a !important;
+  box-shadow: 0 0 0 0.2rem rgba(21, 112, 106, 0.25) !important;
+}
+
+.form-check-input:checked {
+  background-color: #15706a !important;
+  border-color: #15706a !important;
+}
+
+/* Animations pour les boutons */
+.btn:hover {
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
+
+/* Style pour le bouton submit actif */
+#submitBtn:hover {
+  background-color: #1ec98e !important;
+  border-color: #1ec98e !important;
+}
+
+/* Animation du badge numéroté */
+.badge {
+  transition: all 0.3s ease;
+}
+
+.badge:hover {
+  transform: scale(1.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('demandeForm');
+  const fileInput = document.getElementById('fichiers');
+  const uploadZone = document.getElementById('uploadZone');
+  const filesList = document.getElementById('filesList');
+  const submitBtn = document.getElementById('submitBtn');
+  const documentSelect = document.getElementById('document_id');
+  const documentDescription = document.getElementById('document-description');
+  const descriptionText = document.getElementById('description-text');
+
+  let selectedFiles = [];
+
+  // Gestion de la description du document
+  documentSelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const description = selectedOption.getAttribute('data-description');
+    
+    if (description && description.trim() !== '') {
+      descriptionText.textContent = description;
+      documentDescription.classList.remove('d-none');
+      
+      // Animation d'apparition
+      documentDescription.style.opacity = '0';
+      documentDescription.style.transform = 'translateY(-10px)';
+      setTimeout(() => {
+        documentDescription.style.transition = 'all 0.3s ease';
+        documentDescription.style.opacity = '1';
+        documentDescription.style.transform = 'translateY(0)';
+      }, 10);
+    } else {
+      documentDescription.classList.add('d-none');
+    }
+  });
+
+  // Gestion du glisser-déposer
+  uploadZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('dragover');
+  });
+
+  uploadZone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    this.classList.remove('dragover');
+  });
+
+  uploadZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files);
+    handleFiles(files);
+  });
+
+  uploadZone.addEventListener('click', function() {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', function() {
+    const files = Array.from(this.files);
+    handleFiles(files);
+  });
+
+  function handleFiles(files) {
+    files.forEach(file => {
+      if (validateFile(file)) {
+        selectedFiles.push(file);
+      }
+    });
+    updateFilesList();
+    updateFileInput();
+    updateUploadZoneState();
+  }
+
+  function updateUploadZoneState() {
+    if (selectedFiles.length > 0) {
+      uploadZone.classList.add('has-files');
+      // Changer le texte et l'icône
+      const icon = uploadZone.querySelector('.fas');
+      const title = uploadZone.querySelector('h6');
+      const subtitle = uploadZone.querySelector('p');
+      const button = uploadZone.querySelector('.btn');
+      
+      icon.className = 'fas fa-check-circle fs-1 mb-3';
+      title.textContent = `${selectedFiles.length} fichier(s) sélectionné(s)`;
+      subtitle.textContent = 'Cliquez pour ajouter d\'autres fichiers';
+      button.innerHTML = '<i class="fas fa-plus me-2"></i>Ajouter des fichiers';
+      button.className = 'btn btn-outline-success';
+    } else {
+      uploadZone.classList.remove('has-files');
+      // Remettre le texte et l'icône par défaut
+      const icon = uploadZone.querySelector('.fas');
+      const title = uploadZone.querySelector('h6');
+      const subtitle = uploadZone.querySelector('p');
+      const button = uploadZone.querySelector('.btn');
+      
+      icon.className = 'text-muted fs-1 mb-3 fas fa-cloud-upload-alt';
+      title.textContent = 'Glissez et déposez vos fichiers ici';
+      subtitle.textContent = 'ou';
+      button.innerHTML = '<i class="fas fa-plus me-2"></i>Choisir des fichiers';
+      button.className = 'btn btn-outline-secondary';
+    }
+  }
+
+  function validateFile(file) {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    const maxSize = 5 * 1024 * 1024; // 5 Mo
+
+    if (!allowedTypes.includes(file.type)) {
+      showToast(`Le fichier "${file.name}" n'est pas dans un format accepté.`, 'danger');
+      return false;
+    }
+
+    if (file.size > maxSize) {
+      showToast(`Le fichier "${file.name}" est trop volumineux (max 5 Mo).`, 'danger');
+      return false;
+    }
+
+    // Vérifier si le fichier n'est pas déjà ajouté
+    const fileExists = selectedFiles.some(existingFile => 
+      existingFile.name === file.name && existingFile.size === file.size
+    );
+    
+    if (fileExists) {
+      showToast(`Le fichier "${file.name}" est déjà ajouté.`, 'warning');
+      return false;
+    }
+
+    return true;
+  }
+
+  function updateFilesList() {
+    filesList.innerHTML = '';
+    
+    if (selectedFiles.length === 0) {
+      return;
+    }
+
+    selectedFiles.forEach((file, index) => {
+      const fileItem = document.createElement('div');
+      fileItem.className = 'file-item border rounded p-3 mb-2 bg-white';
+      fileItem.style.opacity = '0';
+      fileItem.style.transform = 'translateX(-20px)';
+      
+      fileItem.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-file-${getFileIcon(file.type)} me-3" style="color: #15706a;"></i>
+            <div>
+              <div class="fw-semibold">${file.name}</div>
+              <small class="text-muted">${formatFileSize(file.size)}</small>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-danger" 
+                  onclick="removeFile(${index})" title="Supprimer">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `;
+      
+      filesList.appendChild(fileItem);
+      
+      // Animation d'apparition
+      setTimeout(() => {
+        fileItem.style.transition = 'all 0.3s ease';
+        fileItem.style.opacity = '1';
+        fileItem.style.transform = 'translateX(0)';
+      }, index * 100);
+    });
+  }
+
+  function removeFile(index) {
+    const fileItem = document.querySelectorAll('.file-item')[index];
+    if (fileItem) {
+      fileItem.style.transition = 'all 0.3s ease';
+      fileItem.style.opacity = '0';
+      fileItem.style.transform = 'translateX(20px)';
+      
+      setTimeout(() => {
+        selectedFiles.splice(index, 1);
+        updateFilesList();
+        updateFileInput();
+        updateUploadZoneState();
+      }, 300);
+    }
+  }
+
+  function updateFileInput() {
+    const dt = new DataTransfer();
+    selectedFiles.forEach(file => dt.items.add(file));
+    fileInput.files = dt.files;
+  }
+
+  function getFileIcon(mimeType) {
+    if (mimeType === 'application/pdf') return 'pdf';
+    if (mimeType.startsWith('image/')) return 'image';
+    return 'alt';
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Fonction pour afficher les toasts
+  function showToast(message, type) {
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+      toastContainer.style.zIndex = '1080';
+      document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${type} border-0`;
+    toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+  }
+
+  // Gestion de la soumission du formulaire
+  form.addEventListener('submit', function(e) {
+    if (selectedFiles.length === 0) {
+      e.preventDefault();
+      showToast('Veuillez sélectionner au moins un fichier.', 'danger');
+      return;
+    }
+
+    // Animation du bouton de soumission
+    submitBtn.disabled = true;
+    submitBtn.querySelector('span').textContent = 'Envoi en cours...';
+    submitBtn.querySelector('.spinner-border').classList.remove('d-none');
+
+    // Simuler un délai pour montrer l'animation (à supprimer en production)
+    setTimeout(() => {
+      // Le formulaire sera soumis normalement après cette fonction
+    }, 100);
+  });
+
+  // Fonction globale pour supprimer un fichier (accessible depuis onclick)
+  window.removeFile = removeFile;
+});
+</script>
 {% endblock %}

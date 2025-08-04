@@ -1,118 +1,487 @@
-<!-- templates/layouts/base_admin.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}Admin{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Bootstrap 5 CDN -->
+  
+  <!-- Bootstrap 5 & FontAwesome -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
   <style>
-    body { min-height: 100vh; background-color: #f8f9fa; }
-    .sidebar {
-        min-height: 100vh;
-        background-color: #343a40;
-        color: white;
-        padding: 20px;
+    :root {
+      --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+      --sidebar-bg: linear-gradient(180deg, #1a1d23 0%, #2c3e50 100%);
+      --sidebar-hover: rgba(255,255,255,0.1);
     }
-    .sidebar .nav-link {
-        color: white;
-        margin: 8px 0;
+    
+    body { 
+      min-height: 100vh; 
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    .sidebar .nav-link:hover {
-        background-color: #495057;
-        border-radius: 5px;
+    
+    /* Header */
+    .main-navbar {
+      background: var(--primary-gradient) !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 1rem 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1100;
     }
+    
     .navbar-brand {
-        font-weight: bold;
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: white !important;
+    }
+    
+    .user-info {
+      background: rgba(255,255,255,0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .logout-header-btn {
+      background: rgba(220, 53, 69, 0.2);
+      border: 1px solid rgba(220, 53, 69, 0.3);
+      color: #fff;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+    }
+    
+    .logout-header-btn:hover {
+      background: rgba(220, 53, 69, 0.3);
+      border-color: rgba(220, 53, 69, 0.5);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 76px;
+      bottom: 0;
+      left: 0;
+      width: 16.666667%; /* col-md-2 */
+      background: var(--sidebar-bg);
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      padding: 2rem 0;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    
+    .sidebar-brand {
+      padding: 0 1.5rem 2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 2rem;
+    }
+    
+    .nav-section {
+      margin-bottom: 2rem;
+    }
+    
+    .nav-section-title {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 0 1.5rem;
+      margin-bottom: 1rem;
+      letter-spacing: 1px;
+    }
+    
+    .sidebar .nav-link {
+      color: rgba(255,255,255,0.9);
+      padding: 0.75rem 1.5rem;
+      margin: 0.25rem 0;
+      border-radius: 0;
+      transition: all 0.3s ease;
+      position: relative;
+      font-weight: 500;
+    }
+    
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+      background: var(--sidebar-hover);
+      color: white;
+      transform: translateX(5px);
+    }
+    
+    .sidebar .nav-link:hover::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #0d6efd;
+    }
+    
+    .sidebar .nav-link i {
+      width: 20px;
+      margin-right: 0.75rem;
+      text-align: center;
+    }
+    
+    .logout-btn {
+      color: #dc3545 !important;
+      background: transparent !important;
+      border: none !important;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .logout-btn:hover {
+      background: rgba(220, 53, 69, 0.1) !important;
+      color: #dc3545 !important;
+    }
+    
+    /* Main content */
+    .main-content {
+      margin-left: 16.666667%; /* col-md-2 */
+      margin-top: 76px; /* hauteur du header */
+      padding: 2rem;
+      min-height: calc(100vh - 76px);
+    }
+    
+    /* Messages */
+    .alert {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+    }
+    
+    .alert-success {
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+      color: #155724;
+    }
+    
+    .alert-warning {
+      background: linear-gradient(135deg, #fff3cd 0%, #fde9a3 100%);
+      color: #856404;
+    }
+    
+    .alert-danger {
+      background: linear-gradient(135deg, #f8d7da 0%, #f1aeb5 100%);
+      color: #721c24;
+    }
+    
+    .alert-info {
+      background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+      color: #0c5460;
+    }
+    
+    /* Modal de confirmation */
+    .modal-content {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    .modal-header {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      color: white;
+      border-radius: 15px 15px 0 0;
+      border-bottom: none;
+    }
+    
+    .modal-body {
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .modal-footer {
+      border-top: none;
+      padding: 1rem 2rem 2rem;
+      justify-content: center;
+      gap: 1rem;
+    }
+    
+    .logout-icon {
+      font-size: 3rem;
+      color: #dc3545;
+      margin-bottom: 1rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        left: -280px;
+        width: 280px;
+        transition: left 0.3s ease;
+      }
+      
+      .sidebar.show {
+        left: 0;
+      }
+      
+      .main-content {
+        margin-left: 0;
+        padding: 1rem;
+      }
+      
+      .mobile-toggle {
+        display: block !important;
+      }
+      
+      .user-info {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+      }
+      
+      .logout-header-btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+      }
+    }
+    
+    .mobile-toggle {
+      display: none;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 0.5rem;
+      border-radius: 5px;
+    }
+    
+    /* Animations */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .main-content > * {
+      animation: slideIn 0.5s ease;
+    }
+    
+    /* Animation pour le modal */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    .logout-icon {
+      animation: shake 0.5s ease-in-out;
     }
   </style>
 </head>
 <body>
-
   <!-- Header -->
-  <nav class="navbar navbar-dark bg-dark">
+  <nav class="navbar navbar-expand-lg main-navbar">
     <div class="container-fluid">
-      <span class="navbar-brand">🔐 AdminPanel</span>
-      <span class="text-white">Connecté : {{ request.user.username }}</span>
+      <button class="mobile-toggle me-3" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <span class="navbar-brand">
+        <i class="fas fa-shield-alt me-2"></i>AdminPanel
+      </span>
+      <div class="user-info text-white">
+        <div>
+          <i class="fas fa-user-circle me-2"></i>{{ request.user.username }}
+        </div>
+        <button class="btn logout-header-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
+          <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+        </button>
+      </div>
     </div>
   </nav>
 
+  <!-- Modal de confirmation de déconnexion -->
+  <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="logoutModalLabel">
+            <i class="fas fa-exclamation-triangle me-2"></i>Confirmation de déconnexion
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="logout-icon">
+            <i class="fas fa-sign-out-alt"></i>
+          </div>
+          <h6 class="mb-3">Êtes-vous sûr de vouloir vous déconnecter ?</h6>
+          <p class="text-muted mb-0">Vous devrez vous reconnecter pour accéder à nouveau à l'administration.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Annuler
+          </button>
+          <form method="post" action="{% url 'logout' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger px-4">
+              <i class="fas fa-sign-out-alt me-2"></i>Se déconnecter
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Main Layout -->
-  <div class="container-fluid">
-    <div class="row">
-
+  <div class="container-fluid p-0">
+    <div class="row g-0">
       <!-- Sidebar -->
-      <nav class="col-md-2 d-none d-md-block sidebar">
-        <div class="position-sticky">
-          <ul class="nav flex-column">
+      <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <h6 class="text-white mb-0">
             {% if request.user.role == 'admin' %}
-  <li class="nav-item">
-    <a class="nav-link" href="{% url 'admin_dashboard' %}">🏠 Dashboard Admin</a>
-  </li>
+              <i class="fas fa-crown text-warning me-2"></i>Administrateur
+            {% elif request.user.role == 'agent' %}
+              <i class="fas fa-user-tie text-info me-2"></i>Agent
+            {% elif request.user.role == 'operateur' %}
+              <i class="fas fa-cogs text-success me-2"></i>Opérateur
+            {% endif %}
+          </h6>
+        </div>
 
-  <li class="nav-item">
-    <a class="nav-link" href="{% url 'liste_agents' %}">👥 Gérer les agents</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{% url 'liste_operateurs'%}">🛠 Gérer les opérateurs</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{% url 'gestion_pieces' %}">📄 Pièces requises</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">📋 Logs</a>
-  </li>
+        <div class="nav-section">
+          {% if request.user.role == 'admin' %}
+            <div class="nav-section-title">Administration</div>
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                  <i class="fas fa-tachometer-alt"></i>Dashboard
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'liste_agents' %}">
+                  <i class="fas fa-users"></i>Gérer les agents
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'liste_operateurs' %}">
+                  <i class="fas fa-tools"></i>Gérer les opérateurs
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'gestion_pieces' %}">
+                  <i class="fas fa-file-alt"></i>Pièces requises
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">
+                  <i class="fas fa-list-alt"></i>Logs système
+                </a>
+              </li>
+            </ul>
+          {% elif request.user.role == 'agent' %}
+            <div class="nav-section-title">Gestion</div>
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'agent_dashboard' %}">
+                  <i class="fas fa-chart-line"></i>Dashboard
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'agent:liste_demandes' %}">
+                  <i class="fas fa-inbox"></i>Gérer les demandes
+                </a>
+              </li>
+            </ul>
+          {% elif request.user.role == 'operateur' %}
+            <div class="nav-section-title">Opérations</div>
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'operateur_dashboard' %}">
+                  <i class="fas fa-desktop"></i>Dashboard
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'operateur:liste_demandes' %}">
+                  <i class="fas fa-inbox"></i>Gérer les demandes
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'liste_centres' %}">
+                  <i class="fas fa-compass"></i>Centres d'intérêt
+                </a>
+              </li>
+            </ul>
+          {% endif %}
+        </div>
 
-{% elif request.user.role == 'agent' %}
-  <li class="nav-item">
-    <a class="nav-link" href="{% url 'agent_dashboard' %}">📑 Dashboard Agent</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{% url 'agent:liste_demandes' %}">📥 Gérer les demandes</a>
-  </li>
-
-{% elif request.user.role == 'operateur' %}
-  <li class="nav-item">
-    <a class="nav-link" href="{% url 'operateur_dashboard' %}">⚙️ Dashboard Opérateur</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">🧭 Centres d’intérêt</a>
-  </li>
-{% endif %}
-              <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="nav-link text-danger bg-transparent border-0 p-0" style="cursor:pointer;">
-                  🚪 Déconnexion
-                </button>
-              </form>
+        <!-- Option: Garder aussi le bouton dans la sidebar pour plus de flexibilité -->
+        <div class="nav-section mt-auto">
+          <div class="nav-section-title">Compte</div>
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <button class="nav-link logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                <i class="fas fa-sign-out-alt"></i>Déconnexion
+              </button>
             </li>
           </ul>
         </div>
       </nav>
 
       <!-- Page content -->
-      <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+      <main class="main-content">
         {% if messages %}
-          <div class="container mt-3">
-            {% for message in messages %}
-              <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-            {% endfor %}
-          </div>
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+              <i class="fas fa-info-circle me-2"></i>{{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
         {% endif %}
+        
         {% block content %}
-        <h1>Contenu principal</h1>
+          <div class="text-center py-5">
+            <i class="fas fa-home fs-1 text-muted mb-3"></i>
+            <h2 class="text-muted">Contenu principal</h2>
+          </div>
         {% endblock %}
       </main>
-
     </div>
   </div>
 
-  <!-- Bootstrap JS (si nécessaire) -->
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('show');
+    }
+
+    // Fermer la sidebar sur mobile quand on clique ailleurs
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.mobile-toggle');
+      
+      if (window.innerWidth <= 768 && 
+          !sidebar.contains(e.target) && 
+          !toggle.contains(e.target)) {
+        sidebar.classList.remove('show');
+      }
+    });
+
+    // Marquer le lien actif
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname;
+      const navLinks = document.querySelectorAll('.sidebar .nav-link');
+      
+      navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
 </body>
 </html>

@@ -41,3 +41,4 @@ class CustomUser(AbstractUser):
                 self.is_staff = False
                 self.is_superuser = False
         super().save(*args, **kwargs)
+    

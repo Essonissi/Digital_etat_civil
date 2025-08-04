@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Attestation de Traitement de Demande</title>
+    <style>
+        body { 
+            font-family: DejaVu Sans, sans-serif; 
+            line-height: 1.6;
+            margin: 0;
+            padding: 30px;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #15706a;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .logo-section {
+            margin-bottom: 15px;
+        }
+        
+        .republic-header {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        
+        .ministry-name {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .document-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #15706a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 20px 0;
+        }
+        
+        .reference-number {
+            text-align: right;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .content-section {
+            margin: 25px 0;
+            background: #f9f9f9;
+            padding: 20px;
+            border-left: 4px solid #15706a;
+        }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .info-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        
+        .info-table td:first-child {
+            font-weight: bold;
+            width: 35%;
+            background: #f5f5f5;
+            color: #15706a;
+        }
+        
+        .attestation-text {
+            text-align: justify;
+            margin: 25px 0;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        .signature-section {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .signature-block {
+            width: 45%;
+            text-align: center;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            margin-top: 60px;
+            padding-top: 5px;
+            font-size: 11px;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            left: 30px;
+            right: 30px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background: #15706a;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 10px 0;
+        }
+        
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80px;
+            color: rgba(21, 112, 106, 0.1);
+            z-index: -1;
+            font-weight: bold;
+        }
+        
+        @media print {
+            body { margin: 0; padding: 20px; }
+            .footer { position: fixed; bottom: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Filigrane -->
+    <div class="watermark">TRAITÉ</div>
+    
+    <!-- En-tête officiel -->
+    <div class="header">
+        <div class="logo-section">
+            <div class="republic-header">République Togolaise</div>
+            <div class="ministry-name">Ministère de l'Administration Territoriale</div>
+            <div class="ministry-name">Direction des Services Numériques</div>
+        </div>
+        <div class="document-title">Attestation de Traitement de Demande</div>
+    </div>
+    
+    <!-- Numéro de référence -->
+    <div class="reference-number">
+        Réf: ATD/{{ date|date:"Y" }}/{{ demande.id|stringformat:"05d" }}<br>
+        Date d'émission: {{ date|date:"d/m/Y à H:i" }}
+    </div>
+    
+    <!-- Section principale -->
+    <div class="content-section">
+        <h3 style="margin-top: 0; color: #15706a;">INFORMATIONS DU DEMANDEUR</h3>
+        
+        <table class="info-table">
+            <tr>
+                <td>Nom et Prénoms</td>
+                <td>{{ citoyen.first_name }} {{ citoyen.last_name }}</td>
+            </tr>
+            <tr>
+                <td>Adresse électronique</td>
+                <td>{{ citoyen.email }}</td>
+            </tr>
+            <tr>
+                <td>Numéro de téléphone</td>
+                <td>{{ citoyen.telephone }}</td>
+            </tr>
+            <tr>
+                <td>Commune de résidence</td>
+                <td>{{ commune.nom }}</td>
+            </tr>
+            <tr>
+                <td>Quartier</td>
+                <td>{{ quartier.nom }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="content-section">
+        <h3 style="margin-top: 0; color: #15706a;">DÉTAILS DE LA DEMANDE</h3>
+        
+        <table class="info-table">
+            <tr>
+                <td>Type de document</td>
+                <td><strong>{{ document.type }}</strong></td>
+            </tr>
+            <tr>
+                <td>Date de soumission</td>
+                <td>{{ demande.date_demande|date:"d/m/Y à H:i" }}</td>
+            </tr>
+            <tr>
+                <td>Numéro de demande</td>
+                <td>#{{ demande.id }}</td>
+            </tr>
+            <tr>
+                <td>Statut</td>
+                <td><span class="status-badge">Traitée</span></td>
+            </tr>
+            <tr>
+                <td>Date de traitement</td>
+                <td>{{ date|date:"d/m/Y à H:i" }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Texte d'attestation -->
+    <div class="attestation-text">
+        <p><strong>OBJET :</strong> Attestation de traitement de demande de document administratif</p>
+        
+        <p>L'Administration certifie par la présente que la demande de <strong>{{ document.type }}</strong> 
+        soumise par <strong>{{ citoyen.first_name }} {{ citoyen.last_name }}</strong> 
+        en date du <strong>{{ demande.date_demande|date:"d/m/Y" }}</strong> a été dûment examinée et traitée 
+        par nos services compétents.</p>
+        
+        <p>Cette attestation est délivrée pour servir et valoir ce que de droit.</p>
+        
+        <p><em>La présente attestation est générée automatiquement par le système d'information de l'administration 
+        et ne nécessite pas de signature manuscrite pour être valide.</em></p>
+    </div>
+    
+    <!-- Section signatures -->
+    <div class="signature-section">
+        <div class="signature-block">
+            <p><strong>Le Demandeur</strong></p>
+            <div class="signature-line">
+                {{ citoyen.first_name }} {{ citoyen.last_name }}
+            </div>
+        </div>
+        
+        <div class="signature-block">
+            <p><strong>L'Administration</strong></p>
+            <div class="signature-line">
+                Service de Traitement des Demandes<br>
+                Direction des Services Numériques
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pied de page -->
+    <div class="footer">
+        <p><strong>République Togolaise - Ministère de l'Administration Territoriale</strong></p>
+        <p>Direction des Services Numériques | Tél: +228 XX XX XX XX | Email: contact@admin.tg</p>
+        <p><em>Document généré automatiquement le {{ date|date:"d/m/Y à H:i" }} - Réf: ATD/{{ date|date:"Y" }}/{{ demande.id|stringformat:"05d" }}</em></p>
+    </div>
+</body>
+</html>

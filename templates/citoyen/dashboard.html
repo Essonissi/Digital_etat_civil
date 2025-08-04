@@ -5,119 +5,435 @@
 
 {% block content %}
 <div class="container mt-4">
+  <!-- En-tête de la page -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="page-header bg-gradient-success text-white rounded-4 p-4 shadow-sm">
+        <h1 class="mb-2"><i class="fas fa-file-alt me-3"></i>Documents disponibles</h1>
+        <p class="mb-0 opacity-90">Consultez tous les documents requis et suivez l'état de vos demandes</p>
+      </div>
+    </div>
+  </div>
+
   <div class="row">
-    <!-- Colonne gauche : Documents -->
-    <div class="col-md-8">
-      <h2 class="mb-4">Documents disponibles</h2>
-      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-2 g-4">
-        {% for document in documents %}
-          <div class="col">
-            <div class="card h-100 shadow-sm">
-              <div class="card-header bg-success text-white">
-                <strong>{{ document.type }}</strong>
-              </div>
-              <div class="card-body">
-                <p class="card-text">{{ document.description }}</p>
-                <ul class="list-group list-group-flush mb-2">
+    <!-- Section principale : Documents et actions -->
+    <div class="col-lg-8 mb-4">
+
+
+      <!-- Liste des documents -->
+      <div class="documents-section">
+        <h3 class="mb-4 text-dark">
+          <i class="fas fa-list-alt me-2 text-success"></i>Types de documents
+        </h3>
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+          {% for document in documents %}
+            <div class="col">
+              <div class="card h-100 shadow-sm document-card">
+                <div class="card-header bg-success text-white d-flex align-items-center">
+                  <i class="fas fa-file-text me-2"></i>
+                  <strong>{{ document.type }}</strong>
+                </div>
+                <div class="card-body">
+                  <p class="card-text text-muted mb-3">{{ document.description }}</p>
+                  
+                  <h6 class="text-dark mb-2">
+                    <i class="fas fa-paperclip me-1"></i>Pièces requises :
+                  </h6>
+                  
                   {% with pieces=pieces_dict|get_item:document %}
-                    {% for piece in pieces %}
-                      <li class="list-group-item d-flex justify-content-between align-items-center">
-                        {{ piece.libelle_piece }}
-                        {% if piece.obligatoire %}
-                          <span class="badge bg-danger">Obligatoire</span>
-            {% else %}
-                          <span class="badge bg-secondary">Facultatif</span>
-            {% endif %}
-                      </li>
-                    {% empty %}
-                      <li class="list-group-item text-muted">Aucune pièce requise.</li>
-                    {% endfor %}
+                    {% if pieces %}
+                      <ul class="list-group list-group-flush">
+                        {% for piece in pieces %}
+                          <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="piece-name">{{ piece.libelle_piece }}</span>
+                            {% if piece.obligatoire %}
+                              <span class="badge bg-danger rounded-pill">Obligatoire</span>
+                            {% else %}
+                              <span class="badge bg-secondary rounded-pill">Facultatif</span>
+                            {% endif %}
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    {% else %}
+                      <div class="alert alert-info py-2 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <small>Aucune pièce spécifique requise</small>
+                      </div>
+                    {% endif %}
                   {% endwith %}
-                </ul>
+                </div>
               </div>
             </div>
-          </div>
-        {% endfor %}
+          {% endfor %}
+        </div>
       </div>
     </div>
 
-    <!-- Colonne droite : Statistiques -->
-    <div class="col-md-4 mb-4">
-      <a href="{% url 'documents_citoyen' %}" style="text-decoration: none; color: inherit;">
-        <div class="card shadow-sm" style="cursor:pointer;">
-          <div class="card-header bg-success text-white">
-            <strong><i class="fas fa-chart-bar me-2"></i>Mes statistiques</strong>
+    <!-- Sidebar : Statistiques -->
+    <div class="col-lg-4">
+      <div class="sticky-sidebar">
+        <!-- Actions rapides - Bouton déplacé -->
+        <div class="mb-4">
+          <a href="{% url 'documents_citoyen' %}" class="btn btn-success btn-lg w-100 py-3 shadow-sm">
+            <i class="fas fa-folder-open me-2"></i>Consulter mes demandes
+          </a>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="card shadow-sm mb-4 stats-card">
+          <div class="card-header bg-light border-bottom">
+            <h6 class="mb-0 text-dark">
+              <i class="fas fa-chart-pie me-2 text-primary"></i>Statistiques de mes demandes
+            </h6>
           </div>
-          <div class="card-body">
-            <div class="row g-3">
-              <div class="col-6">
-                <div class="text-center p-3 bg-light rounded">
-                  <div class="h4 text-primary mb-1">{{ demandes|length }}</div>
-                  <small class="text-muted">Total</small>
-                </div>
+          <div class="card-body p-0">
+            <!-- Total -->
+            <div class="stat-row">
+              <div class="stat-icon-container">
+                <i class="fas fa-list"></i>
               </div>
-              <div class="col-6">
-                <div class="text-center p-3 bg-warning bg-opacity-10 rounded">
-                  <div class="h4 text-warning mb-1">{{ demandes_en_attente|length }}</div>
-                  <small class="text-muted">En attente</small>
-                </div>
+              <div class="stat-label">Total</div>
+              <div class="stat-value">{{ demandes|length }}</div>
+            </div>
+
+            <!-- En attente -->
+            <div class="stat-row">
+              <div class="stat-icon-container">
+                <i class="fas fa-hourglass-half"></i>
               </div>
-              <div class="col-6">
-                <div class="text-center p-3 bg-success bg-opacity-10 rounded">
-                  <div class="h4 text-success mb-1">{{ demandes_validees|length }}</div>
-                  <small class="text-muted">Validées</small>
-                </div>
+              <div class="stat-label">En attente</div>
+              <div class="stat-value text-warning">{{ demandes_en_attente|length }}</div>
+            </div>
+
+            <!-- Validées -->
+            <div class="stat-row">
+              <div class="stat-icon-container">
+                <i class="fas fa-check-circle"></i>
               </div>
-              <div class="col-6">
-                <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
-                  <div class="h4 text-danger mb-1">{{ demandes_rejetees|length }}</div>
-                  <small class="text-muted">Rejetées</small>
-                </div>
+              <div class="stat-label">Validées</div>
+              <div class="stat-value text-success">{{ demandes_validees|length }}</div>
+            </div>
+
+            <!-- Traitées -->
+            <div class="stat-row">
+              <div class="stat-icon-container">
+                <i class="fas fa-clipboard-check"></i>
               </div>
+              <div class="stat-label">Traitées</div>
+              <div class="stat-value text-info">{{ demandes_traitees|length }}</div>
+            </div>
+
+            <!-- Rejetées -->
+            <div class="stat-row border-bottom-0">
+              <div class="stat-icon-container">
+                <i class="fas fa-times-circle"></i>
+              </div>
+              <div class="stat-label">Rejetées</div>
+              <div class="stat-value text-danger">{{ demandes_rejetees|length }}</div>
             </div>
           </div>
         </div>
-      </a>
-      <div class="mt-4 d-grid">
-        <a href="{% url 'nouvelle_demande' %}" class="btn btn-success btn-lg">
-          <i class="fas fa-plus me-2"></i>Faire une nouvelle demande
-        </a>
+
+        <!-- Aide rapide -->
+        <div class="card shadow-sm help-card">
+          <div class="card-header bg-gradient-info text-white">
+            <h6 class="mb-0">
+              <i class="fas fa-question-circle me-2"></i>Besoin d'aide ?
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="help-item mb-3">
+              <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+              <small><strong>Obligatoire :</strong> Document requis pour valider votre demande</small>
+            </div>
+            <div class="help-item">
+              <i class="fas fa-info-circle text-secondary me-2"></i>
+              <small><strong>Facultatif :</strong> Document optionnel pour renforcer votre dossier</small>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <style>
-.card {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+/* Variables CSS */
+:root {
+  --primary-color: #0d6efd;
+  --success-color: #198754;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --info-color: #0dcaf0;
+  --border-radius: 0.75rem;
+  --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --box-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --transition: all 0.2s ease-in-out;
 }
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+
+/* En-tête de page */
+.page-header {
+  background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+  border: none;
 }
-.bg-opacity-10 {
-  background-color: rgba(var(--bs-bg-opacity-color), 0.1) !important;
+
+/* Cartes de documents */
+.document-card {
+  border: none;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+  overflow: hidden;
 }
+
+.document-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.document-card .card-header {
+  border: none;
+  font-weight: 600;
+}
+
+.piece-name {
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+/* En-tête des statistiques */
+.stats-card .card-header {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6;
+  padding: 0.75rem 1rem;
+}
+
+.stats-card .card-header h6 {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Statistiques - Nouveau style en liste */
+.stats-card {
+  border: 1px solid #e9ecef;
+  border-radius: var(--border-radius);
+  background: white;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f3f4;
+  transition: var(--transition);
+}
+
+.stat-row:hover {
+  background-color: #f8f9fa;
+}
+
+.stat-row.border-bottom-0 {
+  border-bottom: none;
+}
+
+.stat-icon-container {
+  width: 20px;
+  margin-right: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon-container i {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.stat-label {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #495057;
+  font-weight: 400;
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #495057;
+  min-width: 30px;
+  text-align: right;
+}
+
+.stat-value.text-warning {
+  color: #f39c12 !important;
+}
+
+.stat-value.text-success {
+  color: #27ae60 !important;
+}
+
+.stat-value.text-info {
+  color: #3498db !important;
+}
+
+.stat-value.text-danger {
+  color: #e74c3c !important;
+}
+
+/* Gradients */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #6f42c1 100%);
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+}
+
+.bg-gradient-warning {
+  background: linear-gradient(135deg, var(--warning-color) 0%, #fd7e14 100%);
+}
+
+.bg-gradient-danger {
+  background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
+}
+
+.bg-gradient-info {
+  background: linear-gradient(135deg, var(--info-color) 0%, #6f42c1 100%);
+}
+
+/* Boutons */
+.btn {
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* Sidebar collante */
+.sticky-sidebar {
+  position: sticky;
+  top: 2rem;
+}
+
+/* Aide */
+.help-card {
+  border: none;
+  border-radius: var(--border-radius);
+}
+
+.help-item {
+  display: flex;
+  align-items: flex-start;
+  line-height: 1.4;
+}
+
+/* Liste des pièces */
 .list-group-item {
   border-left: none;
   border-right: none;
-  padding-left: 0;
-  padding-right: 0;
+  padding: 0.75rem 0;
+  background: transparent;
 }
+
 .list-group-item:first-child {
   border-top: none;
 }
+
 .list-group-item:last-child {
   border-bottom: none;
 }
-@media (max-width: 768px) {
-  .row.g-3 .col-6 {
-    margin-bottom: 1rem;
+
+/* Badges */
+.badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .sticky-sidebar {
+    position: static;
   }
 }
-.card.shadow-sm:hover {
-  box-shadow: 0 0 0 0.2rem #1ec98e;
-  transition: box-shadow 0.2s;
+
+@media (max-width: 768px) {
+  .page-header {
+    text-align: center;
+  }
+  
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .btn-lg {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .stat-row {
+    padding: 0.65rem 0.75rem;
+  }
+  
+  .stat-label {
+    font-size: 0.85rem;
+  }
+  
+  .stat-value {
+    font-size: 0.9rem;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.document-card,
+.stats-card,
+.help-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.document-card:nth-child(even) {
+  animation-delay: 0.1s;
+}
+
+/* Focus et accessibilité */
+.btn:focus,
+.card:focus-within {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Améliorations visuelles */
+.shadow-sm {
+  box-shadow: var(--box-shadow) !important;
+}
+
+.rounded-4 {
+  border-radius: var(--border-radius) !important;
 }
 </style>
 {% endblock %}

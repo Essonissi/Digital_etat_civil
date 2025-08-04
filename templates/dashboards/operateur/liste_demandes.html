@@ -1,0 +1,326 @@
+{% extends "layouts/base_admin.html" %}
+
+{% block title %}Liste des demandes{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- En-tête avec actions -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="text-dark fw-bold mb-1">
+        <i class="fas fa-inbox text-primary me-2"></i>
+        Liste des demandes
+      </h2>
+      <p class="text-muted mb-0">Gérez et traitez les demandes de documents</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" onclick="refreshPage()">
+        <i class="fas fa-sync-alt me-1"></i>Actualiser
+      </button>
+      <div class="dropdown">
+        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="fas fa-filter me-1"></i>Filtres
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="?statut=en_attente">En attente</a></li>
+          <li><a class="dropdown-item" href="?statut=en_cours">En cours</a></li>
+          <li><a class="dropdown-item" href="?statut=traite">Traitées</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="?">Toutes</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistiques rapides -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 bg-info bg-opacity-10 h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-check-circle fs-2 text-info mb-2"></i>
+          <h6 class="mb-1">Validées</h6>
+          <h4 class="fw-bold mb-0">{{ demandes_validees|length }}</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 bg-success bg-opacity-10 h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-clipboard-check fs-2 text-success mb-2"></i>
+          <h6 class="mb-1">Traitées</h6>
+          <h4 class="fw-bold mb-0">{{ demandes_traitees|length }}</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 bg-danger bg-opacity-10 h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-times-circle fs-2 text-danger mb-2"></i>
+          <h6 class="mb-1">Rejetées</h6>
+          <h4 class="fw-bold mb-0">{{ demandes_rejetees|length }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau des demandes -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom-0 py-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-semibold">
+          <i class="fas fa-list me-2 text-primary"></i>
+          Demandes à traiter
+        </h5>
+        <div class="input-group" style="width: 300px;">
+          <span class="input-group-text bg-light border-end-0">
+            <i class="fas fa-search text-muted"></i>
+          </span>
+          <input type="text" class="form-control border-start-0" placeholder="Rechercher une demande..." id="searchInput">
+        </div>
+      </div>
+    </div>
+    
+    <div class="card-body p-0">
+      {% if demandes %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" id="demandesTable">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0 fw-semibold text-muted py-3">
+                  <i class="fas fa-hashtag me-1"></i>ID
+                </th>
+                <th class="border-0 fw-semibold text-muted py-3">
+                  <i class="fas fa-file-alt me-1"></i>Type de document
+                </th>
+                <th class="border-0 fw-semibold text-muted py-3">
+                  <i class="fas fa-user me-1"></i>Demandeur
+                </th>
+                <th class="border-0 fw-semibold text-muted py-3">
+                  <i class="fas fa-calendar me-1"></i>Date
+                </th>
+                <th class="border-0 fw-semibold text-muted py-3">
+                  <i class="fas fa-info-circle me-1"></i>Statut
+                </th>
+                <th class="border-0 fw-semibold text-muted py-3 text-center">
+                  <i class="fas fa-cogs me-1"></i>Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for demande in demandes %}
+              <tr class="align-middle">
+                <td class="py-3">
+                  <span class="badge bg-light text-dark fw-normal">#{{ demande.id }}</span>
+                </td>
+                <td class="py-3">
+                  <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                      <i class="fas fa-file-alt text-primary"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0 fw-semibold">{{ demande.document.type }}</h6>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-3">
+                  <div class="d-flex align-items-center">
+                    <div class="bg-secondary bg-opacity-10 rounded-circle p-2 me-3">
+                      <i class="fas fa-user text-secondary"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0 fw-semibold">{{ demande.user.first_name }} {{ demande.user.last_name }}</h6>
+                      <small class="text-muted">{{ demande.user.email }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-3">
+                  <div>
+                    <span class="fw-semibold">{{ demande.date_demande|date:"d/m/Y" }}</span>
+                    <br>
+                    <small class="text-muted">{{ demande.date_demande|date:"H:i" }}</small>
+                  </div>
+                </td>
+                <td class="py-3">
+                  {% if demande.statut == 'en_attente' %}
+                  <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-medium">
+                    <i class="fas fa-hourglass-half me-1"></i>En attente
+                  </span>
+                {% elif demande.statut == 'validee' %}
+                  <span class="badge bg-success rounded-pill px-3 py-2 fw-medium">
+                    <i class="fas fa-check-circle me-1"></i>Validée
+                  </span>
+                {% elif demande.statut == 'traitee' %}
+                  <span class="badge bg-info rounded-pill px-3 py-2 fw-medium">
+                    <i class="fas fa-clipboard-check me-1"></i>Traitée
+                  </span>
+                {% elif demande.statut == 'rejetee' %}
+                  <span class="badge bg-danger rounded-pill px-3 py-2 fw-medium">
+                    <i class="fas fa-times-circle me-1"></i>Rejetée
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary rounded-pill px-3 py-2 fw-medium">{{ demande.statut }}</span>
+                {% endif %}
+                </td>
+                <td class="py-3 text-center">
+                  <div class="btn-group" role="group">
+                    <a href="{% url 'operateur:detail_demande' demande.id %}" 
+                       class="btn btn-sm btn-outline-primary" 
+                       data-bs-toggle="tooltip" 
+                       title="Voir les détails">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    {% if demande.statut == 'en_attente' %}
+                      <button class="btn btn-sm btn-outline-success" 
+                              data-bs-toggle="tooltip" 
+                              title="Traiter la demande">
+                        <i class="fas fa-play"></i>
+                      </button>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <!-- État vide -->
+        <div class="text-center py-5">
+          <div class="mb-4">
+            <i class="fas fa-inbox fs-1 text-muted opacity-50"></i>
+          </div>
+          <h4 class="text-muted mb-2">Aucune demande à afficher</h4>
+          <p class="text-muted mb-4">Il n'y a actuellement aucune demande à traiter.</p>
+          <button class="btn btn-primary" onclick="refreshPage()">
+            <i class="fas fa-sync-alt me-2"></i>Actualiser la liste
+          </button>
+        </div>
+      {% endif %}
+    </div>
+    
+    {% if demandes %}
+    <div class="card-footer bg-light border-top-0">
+      <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+          <i class="fas fa-info-circle me-1"></i>
+          {{ demandes|length }} demande{{ demandes|length|pluralize }} affichée{{ demandes|length|pluralize }}
+        </small>
+        <div>
+          <!-- Pagination si nécessaire -->
+          <nav aria-label="Navigation des pages">
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item disabled">
+                <span class="page-link">Précédent</span>
+              </li>
+              <li class="page-item active">
+                <span class="page-link">1</span>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link">Suivant</span>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+// Fonction de recherche
+document.getElementById('searchInput').addEventListener('input', function() {
+  const searchTerm = this.value.toLowerCase();
+  const tableRows = document.querySelectorAll('#demandesTable tbody tr');
+  
+  tableRows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    if (text.includes(searchTerm)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+});
+
+// Fonction d'actualisation
+function refreshPage() {
+  window.location.reload();
+}
+
+// Initialiser les tooltips
+document.addEventListener('DOMContentLoaded', function() {
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+});
+</script>
+
+<style>
+/* Styles supplémentaires pour le tableau */
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+.btn-group .btn {
+  border-radius: 6px !important;
+  margin-right: 4px;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+
+.badge {
+  font-size: 0.8rem;
+  padding: 0.5em 0.8em;
+}
+
+/* Animation pour les cartes de statistiques */
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+/* Style pour la barre de recherche */
+.input-group .form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+}
+
+/* Amélioration de l'apparence du tableau */
+.table th {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table td {
+  vertical-align: middle;
+  border-color: #f1f3f4;
+}
+
+/* Style pour les états vides */
+.text-center .fas {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.5; }
+}
+</style>
+{% endblock %}

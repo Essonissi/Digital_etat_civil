@@ -10,6 +10,12 @@ class Demande(models.Model):
         ('rejetee', 'Rejetée'),
         ('traitee', 'Traitée')
     ]
+    
+    REJET_PAR_CHOICES = [
+        ('agent', 'Agent'),
+        ('operateur', 'Opérateur')
+    ]
+    
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     commune = models.ForeignKey(Commune, on_delete=models.CASCADE)
@@ -17,3 +23,5 @@ class Demande(models.Model):
     date_demande = models.DateTimeField(auto_now_add=True)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
     motif_rejet = models.TextField(blank=True, null=True)
+    rejet_par = models.CharField(max_length=20, choices=REJET_PAR_CHOICES, blank=True, null=True)
+    fichier_confirmation = models.FileField(upload_to='confirmations/', null=True, blank=True)

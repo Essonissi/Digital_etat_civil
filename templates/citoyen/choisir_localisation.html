@@ -3,52 +3,283 @@
 
 {% block content %}
 <div class="container mt-4">
-  <h4>Choisissez votre commune et quartier</h4>
-  <form method="POST">
-    {% csrf_token %}
-    <div class="mb-3">
-      <label for="commune">Commune</label>
-      <select id="commune" name="commune" class="form-select" required>
-        <option value="">-- Sélectionner une commune --</option>
-        {% for commune in communes %}
-          <option value="{{ commune.id }}">{{ commune.nom }}</option>
-        {% endfor %}
-      </select>
-    </div>
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+      <!-- En-tête de la page -->
+      <div class="text-center mb-5">
+        <div class="mb-3">
+          <i class="fas fa-map-marker-alt" style="font-size: 3rem; color: #15706a;"></i>
+        </div>
+        <h2 class="text-dark mb-2">Localisation</h2>
+        <p class="text-muted">Choisissez votre commune et quartier pour personnaliser vos services</p>
+      </div>
 
-    <div class="mb-3">
-      <label for="quartier">Quartier</label>
-      <select id="quartier" name="quartier" class="form-select" required>
-        <option value="">-- Sélectionner un quartier --</option>
-      </select>
-    </div>
+      <!-- Carte principale -->
+      <div class="card shadow-sm border-0" style="border-radius: 1rem;">
+        <div class="card-header bg-white border-0 pt-4 pb-0">
+          <h4 class="card-title text-center" style="color: #15706a;">
+            <i class="fas fa-location-dot me-2"></i>
+            Configuration de votre zone
+          </h4>
+        </div>
+        
+        <div class="card-body p-4">
+          <form method="POST" id="localisationForm">
+            {% csrf_token %}
+            
+            <!-- Sélection de la commune -->
+            <div class="mb-4">
+              <label for="commune" class="form-label fw-semibold" style="color: #15706a;">
+                <i class="fas fa-city me-2"></i>Commune
+              </label>
+              <select id="commune" name="commune" class="form-select form-select-lg" required style="border-color: #15706a; border-width: 2px;">
+                <option value="">-- Sélectionner une commune --</option>
+                {% for commune in communes %}
+                  <option value="{{ commune.id }}">{{ commune.nom }}</option>
+                {% endfor %}
+              </select>
+              <div class="form-text">
+                <i class="fas fa-info-circle me-1"></i>
+                Sélectionnez d'abord votre commune
+              </div>
+            </div>
 
-    <button type="submit" class="btn btn-primary">Enregistrer</button>
-  </form>
+            <!-- Sélection du quartier -->
+            <div class="mb-4">
+              <label for="quartier" class="form-label fw-semibold" style="color: #15706a;">
+                <i class="fas fa-map me-2"></i>Quartier
+              </label>
+              <select id="quartier" name="quartier" class="form-select form-select-lg" required style="border-color: #15706a; border-width: 2px;" disabled>
+                <option value="">-- Sélectionner un quartier --</option>
+              </select>
+              <div class="form-text">
+                <i class="fas fa-info-circle me-1"></i>
+                Le quartier sera disponible après avoir choisi une commune
+              </div>
+            </div>
+
+            <!-- Indicateur de chargement -->
+            <div id="loadingIndicator" class="text-center mb-3" style="display: none;">
+              <div class="spinner-border text-success" role="status" style="color: #15706a !important;">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+              <p class="mt-2 text-muted">Chargement des quartiers...</p>
+            </div>
+
+            <!-- Bouton de soumission -->
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-lg px-5 py-3" style="background: #15706a; border: none; color: white; border-radius: 0.75rem; font-weight: 600;" disabled id="submitBtn">
+                <i class="fas fa-save me-2"></i>
+                Enregistrer ma localisation
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Informations supplémentaires -->
+      <div class="row mt-4">
+        <div class="col-md-6 mb-3">
+          <div class="card h-100 border-0" style="background: #f8f9ff; border-radius: 0.75rem;">
+            <div class="card-body text-center p-4">
+              <i class="fas fa-shield-alt mb-3" style="font-size: 2rem; color: #15706a;"></i>
+              <h6 style="color: #15706a;">Sécurisé</h6>
+              <p class="text-muted small mb-0">Vos données de localisation sont protégées</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="card h-100 border-0" style="background: #f8f9ff; border-radius: 0.75rem;">
+            <div class="card-body text-center p-4">
+              <i class="fas fa-cogs mb-3" style="font-size: 2rem; color: #15706a;"></i>
+              <h6 style="color: #15706a;">Personnalisé</h6>
+              <p class="text-muted small mb-0">Services adaptés à votre zone</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-document.getElementById('commune').addEventListener('change', function() {
-  var communeId = this.value;
-  var quartierSelect = document.getElementById('quartier');
-  quartierSelect.innerHTML = '<option value="">Chargement...</option>';
-  $.ajax({
-    url: "{% url 'ajax_quartiers' %}",
-    data: {
-      'commune_id': communeId
-    },
-    success: function(data) {
-      quartierSelect.innerHTML = '<option value="">-- Sélectionner un quartier --</option>';
-      data.quartiers.forEach(q => {
-        quartierSelect.innerHTML += `<option value="${q.id}">${q.nom}</option>`;
-      });
-    },
-    error: function(xhr, status, error) {
-      quartierSelect.innerHTML = '<option value="">-- Erreur de chargement des quartiers --</option>';
-      console.error("Erreur lors du chargement des quartiers:", error);
+document.addEventListener('DOMContentLoaded', function() {
+  const communeSelect = document.getElementById('commune');
+  const quartierSelect = document.getElementById('quartier');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const submitBtn = document.getElementById('submitBtn');
+
+  // Fonction pour activer/désactiver le bouton submit
+  function toggleSubmitButton() {
+    const communeSelected = communeSelect.value !== '';
+    const quartierSelected = quartierSelect.value !== '';
+    
+    if (communeSelected && quartierSelected) {
+      submitBtn.disabled = false;
+      submitBtn.classList.add('btn-success');
+      submitBtn.style.background = '#1ec98e';
+    } else {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove('btn-success');
+      submitBtn.style.background = '#6c757d';
     }
-    });
+  }
+
+  // Événement de changement de commune
+  communeSelect.addEventListener('change', function() {
+    const communeId = this.value;
+    
+    // Reset du quartier
+    quartierSelect.innerHTML = '<option value="">-- Sélectionner un quartier --</option>';
+    quartierSelect.disabled = true;
+    
+    if (communeId) {
+      // Affichage du loader
+      loadingIndicator.style.display = 'block';
+      quartierSelect.style.opacity = '0.5';
+      
+      $.ajax({
+        url: "{% url 'ajax_quartiers' %}",
+        data: { 'commune_id': communeId },
+        success: function(data) {
+          // Masquer le loader
+          loadingIndicator.style.display = 'none';
+          quartierSelect.style.opacity = '1';
+          
+          // Remplir les quartiers
+          quartierSelect.innerHTML = '<option value="">-- Sélectionner un quartier --</option>';
+          data.quartiers.forEach(q => {
+            quartierSelect.innerHTML += `<option value="${q.id}">${q.nom}</option>`;
+          });
+          
+          // Réactiver le select
+          quartierSelect.disabled = false;
+          
+          // Animation de succès
+          quartierSelect.style.borderColor = '#1ec98e';
+          setTimeout(() => {
+            quartierSelect.style.borderColor = '#15706a';
+          }, 2000);
+        },
+        error: function(xhr, status, error) {
+          // Masquer le loader
+          loadingIndicator.style.display = 'none';
+          quartierSelect.style.opacity = '1';
+          
+          // Afficher l'erreur
+          quartierSelect.innerHTML = '<option value="">-- Erreur de chargement des quartiers --</option>';
+          quartierSelect.style.borderColor = '#dc3545';
+          
+          console.error("Erreur lors du chargement des quartiers:", error);
+          
+          // Toast d'erreur
+          showToast('Erreur lors du chargement des quartiers', 'danger');
+        }
+      });
+    } else {
+      quartierSelect.disabled = true;
+    }
+    
+    toggleSubmitButton();
+  });
+
+  // Événement de changement de quartier
+  quartierSelect.addEventListener('change', function() {
+    toggleSubmitButton();
+    
+    if (this.value) {
+      // Animation de validation
+      this.style.borderColor = '#1ec98e';
+      setTimeout(() => {
+        this.style.borderColor = '#15706a';
+      }, 2000);
+    }
+  });
+
+  // Fonction pour afficher les toasts
+  function showToast(message, type) {
+    // Créer le conteneur de toast s'il n'existe pas
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+      toastContainer.style.zIndex = '1080';
+      document.body.appendChild(toastContainer);
+    }
+
+    // Créer le toast
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${type} border-0`;
+    toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Nettoyer après masquage
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+  }
+
+  // Animation au chargement de la page
+  document.querySelector('.card').style.opacity = '0';
+  document.querySelector('.card').style.transform = 'translateY(20px)';
+  
+  setTimeout(() => {
+    document.querySelector('.card').style.transition = 'all 0.5s ease';
+    document.querySelector('.card').style.opacity = '1';
+    document.querySelector('.card').style.transform = 'translateY(0)';
+  }, 100);
 });
 </script>
+
+<style>
+/* Styles personnalisés pour cette page */
+.form-select:focus {
+  border-color: #1ec98e !important;
+  box-shadow: 0 0 0 0.25rem rgba(30, 201, 142, 0.25) !important;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  transition: all 0.3s ease;
+}
+
+/* Animation pour les icônes */
+.fas {
+  transition: all 0.3s ease;
+}
+
+.card:hover .fas {
+  transform: scale(1.1);
+}
+
+/* Style pour les états disabled */
+.form-select:disabled {
+  background-color: #f8f9fa;
+  opacity: 0.6;
+}
+
+/* Animation de pulsation pour le bouton actif */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(30, 201, 142, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(30, 201, 142, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(30, 201, 142, 0); }
+}
+
+.btn:not(:disabled):hover {
+  animation: pulse 2s infinite;
+}
+</style>
 {% endblock %}

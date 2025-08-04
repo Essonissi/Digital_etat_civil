@@ -1,16 +1,287 @@
-<ul class="list-group">
-  <li class="list-group-item"><strong>Type :</strong> {{ demande.document.type }}</li>
-  <li class="list-group-item"><strong>Date :</strong> {{ demande.date_demande|date:"d/m/Y H:i" }}</li>
-  <li class="list-group-item"><strong>Statut :</strong> 
-    {% if demande.statut == 'en_attente' %}
-      <span class="badge bg-warning text-dark">En attente</span>
-    {% elif demande.statut == 'validee' %}
-      <span class="badge bg-success">Validée</span>
-    {% elif demande.statut == 'rejetee' %}
-      <span class="badge bg-danger">Rejetée</span>
-    {% else %}
-      <span class="badge bg-secondary">{{ demande.statut }}</span>
-    {% endif %}
-  </li>
-  <li class="list-group-item"><strong>Motif :</strong> {{ demande.motif|default:"-" }}</li>
-</ul>
+<!-- Carte des détails de la demande -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-white border-0 pb-0">
+    <div class="d-flex align-items-center">
+      <div class="p-2 rounded-circle me-3" style="background-color: rgba(21, 112, 106, 0.1);">
+        <i class="fas fa-file-alt" style="color: #15706a; font-size: 1.2rem;"></i>
+      </div>
+      <div>
+        <h5 class="mb-1" style="color: #15706a;">Détails de la demande</h5>
+        <p class="text-muted small mb-0">Informations sur votre demande de document</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card-body pt-3">
+    <div class="row g-4">
+      <!-- Type de document -->
+      <div class="col-md-6">
+        <div class="d-flex align-items-start">
+          <div class="flex-shrink-0 me-3">
+            <div class="p-2 rounded" style="background-color: rgba(21, 112, 106, 0.1);">
+              <i class="fas fa-document" style="color: #15706a;"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1">
+            <label class="form-label small fw-semibold text-muted mb-1">TYPE DE DOCUMENT</label>
+            <p class="mb-0 fw-semibold" style="color: #15706a;">{{ demande.document.type }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date de demande -->
+      <div class="col-md-6">
+        <div class="d-flex align-items-start">
+          <div class="flex-shrink-0 me-3">
+            <div class="p-2 rounded" style="background-color: rgba(21, 112, 106, 0.1);">
+              <i class="fas fa-calendar-alt" style="color: #15706a;"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1">
+            <label class="form-label small fw-semibold text-muted mb-1">DATE DE DEMANDE</label>
+            <p class="mb-0 fw-semibold">{{ demande.date_demande|date:"d/m/Y à H:i" }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statut -->
+      <div class="col-md-6">
+        <div class="d-flex align-items-start">
+          <div class="flex-shrink-0 me-3">
+            <div class="p-2 rounded" style="background-color: rgba(21, 112, 106, 0.1);">
+              <i class="fas fa-info-circle" style="color: #15706a;"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1">
+            <label class="form-label small fw-semibold text-muted mb-1">STATUT</label>
+            <div>
+              {% if demande.statut == 'en_attente' %}
+                <span class="badge px-3 py-2 rounded-pill" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7;">
+                  <i class="fas fa-clock me-2"></i>En attente
+                </span>
+              {% elif demande.statut == 'validee' %}
+                <span class="badge px-3 py-2 rounded-pill" style="background-color: rgba(30, 201, 142, 0.1); color: #15706a; border: 1px solid #1ec98e;">
+                  <i class="fas fa-check-circle me-2"></i>Validée
+                </span>
+              {% elif demande.statut == 'rejetee' %}
+                <span class="badge px-3 py-2 rounded-pill" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f1aeb5;">
+                  <i class="fas fa-times-circle me-2"></i>Rejetée
+                </span>
+              {% else %}
+                <span class="badge px-3 py-2 rounded-pill" style="background-color: #e2e3e5; color: #6c757d; border: 1px solid #ced4da;">
+                  <i class="fas fa-question-circle me-2"></i>{{ demande.statut }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Numéro de référence -->
+      <div class="col-md-6">
+        <div class="d-flex align-items-start">
+          <div class="flex-shrink-0 me-3">
+            <div class="p-2 rounded" style="background-color: rgba(21, 112, 106, 0.1);">
+              <i class="fas fa-hashtag" style="color: #15706a;"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1">
+            <label class="form-label small fw-semibold text-muted mb-1">RÉFÉRENCE</label>
+            <p class="mb-0 fw-semibold font-monospace" style="color: #15706a;">#{{ demande.id|stringformat:"05d" }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motif de rejet (si applicable) -->
+      {% if demande.motif_rejet %}
+      <div class="col-12">
+        <div class="alert border-0 mb-0" style="background-color: #f8d7da; border-left: 4px solid #dc3545 !important;">
+          <div class="d-flex align-items-start">
+            <div class="flex-shrink-0 me-3">
+              <i class="fas fa-exclamation-triangle" style="color: #721c24; font-size: 1.2rem;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <h6 class="alert-heading mb-2" style="color: #721c24;">Motif de rejet</h6>
+              <p class="mb-0" style="color: #721c24;">{{ demande.motif_rejet }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Barre de progression (optionnelle) -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h6 class="mb-0" style="color: #15706a;">Progression de la demande</h6>
+      <small class="text-muted">
+        {% if demande.statut == 'en_attente' %}
+          Étape 1/3
+        {% elif demande.statut == 'validee' %}
+          Étape 3/3
+        {% elif demande.statut == 'rejetee' %}
+          Traitement interrompu
+        {% endif %}
+      </small>
+    </div>
+    
+    <div class="progress mb-3" style="height: 8px;">
+      {% if demande.statut == 'en_attente' %}
+        <div class="progress-bar" role="progressbar" style="width: 33%; background-color: #15706a;"></div>
+      {% elif demande.statut == 'validee' %}
+        <div class="progress-bar" role="progressbar" style="width: 100%; background-color: #1ec98e;"></div>
+      {% elif demande.statut == 'rejetee' %}
+        <div class="progress-bar bg-danger" role="progressbar" style="width: 66%;"></div>
+      {% endif %}
+    </div>
+    
+    <div class="d-flex justify-content-between small text-muted">
+      <span class="{% if demande.statut %}fw-semibold{% endif %}" style="{% if demande.statut %}color: #15706a;{% endif %}">
+        <i class="fas fa-check-circle me-1"></i>Demande soumise
+      </span>
+      <span class="{% if demande.statut == 'validee' or demande.statut == 'rejetee' %}fw-semibold{% endif %}" 
+            style="{% if demande.statut == 'validee' or demande.statut == 'rejetee' %}color: #15706a;{% endif %}">
+        <i class="fas fa-search me-1"></i>En cours d'examen
+      </span>
+      <span class="{% if demande.statut == 'validee' %}fw-semibold{% endif %}" 
+            style="{% if demande.statut == 'validee' %}color: #1ec98e;{% endif %}">
+        <i class="fas fa-file-download me-1"></i>Document prêt
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Actions disponibles -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white border-0">
+    <h6 class="mb-0" style="color: #15706a;">
+      <i class="fas fa-tools me-2"></i>Actions disponibles
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="d-flex flex-wrap gap-2">
+      {% if demande.statut == 'validee' %}
+        <a href="#" class="btn btn-lg px-4" style="background-color: #1ec98e; border-color: #1ec98e; color: white;">
+          <i class="fas fa-download me-2"></i>Télécharger le document
+        </a>
+      {% endif %}
+      
+      {% if demande.statut == 'en_attente' %}
+        <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+          <i class="fas fa-times me-2"></i>Annuler la demande
+        </button>
+      {% endif %}
+      
+      {% if demande.statut == 'rejetee' %}
+        <a href="#" class="btn btn-outline-primary">
+          <i class="fas fa-redo me-2"></i>Faire une nouvelle demande
+        </a>
+      {% endif %}
+      
+      <button class="btn btn-outline-secondary">
+        <i class="fas fa-print me-2"></i>Imprimer les détails
+      </button>
+      
+      <button class="btn btn-outline-secondary">
+        <i class="fas fa-share me-2"></i>Partager
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal d'annulation (si nécessaire) -->
+{% if demande.statut == 'en_attente' %}
+<div class="modal fade" id="cancelModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" style="color: #15706a;">
+          <i class="fas fa-exclamation-triangle me-2"></i>Annuler la demande
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Êtes-vous sûr de vouloir annuler cette demande ?</p>
+        <div class="alert alert-warning border-0">
+          <i class="fas fa-info-circle me-2"></i>
+          Cette action est irréversible. Vous devrez refaire une nouvelle demande si nécessaire.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Non, garder</button>
+        <button type="button" class="btn btn-danger">
+          <i class="fas fa-times me-2"></i>Oui, annuler
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<style>
+/* Animations et transitions */
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.badge {
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.btn {
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Progress bar animation */
+.progress-bar {
+  transition: width 0.6s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .d-flex.flex-wrap.gap-2 {
+    flex-direction: column;
+  }
+  
+  .d-flex.flex-wrap.gap-2 .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Animation d'entrée */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeInUp 0.5s ease;
+}
+
+.card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+</style>

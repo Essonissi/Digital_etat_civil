@@ -1,0 +1,414 @@
+{% extends 'layouts/base_admin.html' %}
+{% block title %}Liste des centres d'intérêt{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header de la page -->
+    <div class="page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">
+                    <i class="fas fa-compass text-primary me-3"></i>
+                    Centres d'intérêt
+                </h1>
+                <p class="page-subtitle text-muted mb-0">
+                    Gestion des centres d'intérêt dans votre commune
+                </p>
+            </div>
+            <div class="page-actions">
+                <a href="{% url 'ajouter_centre_interet' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Ajouter un centre
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-icon bg-primary">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>{{ centres|length }}</h3>
+                    <p>Total des centres</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-icon bg-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>{{ centres_with_location|length|default:0 }}</h3>
+                    <p>Géolocalisés</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-icon bg-info">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>{{ types_count|default:0 }}</h3>
+                    <p>Types différents</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-icon bg-warning">
+                    <i class="fas fa-map"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>{{ quartiers_count|default:0 }}</h3>
+                    <p>Quartiers couverts</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres et recherche -->
+    <div class="card modern-card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-filter text-primary me-2"></i>
+                Filtres et recherche
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Rechercher par nom...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="typeFilter">
+                        <option value="">Tous les types</option>
+                        {% for type_value in types_distincts %}
+                            <option value="{{ type_value }}">{{ type_value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="quartierFilter">
+                        <option value="">Tous les quartiers</option>
+                        {% for quartier in quartiers_distincts %}
+                            <option value="{{ quartier.id }}">{{ quartier.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                        <i class="fas fa-times me-1"></i>Effacer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des centres -->
+    <div class="card modern-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list text-primary me-2"></i>
+                Liste des centres d'intérêt
+            </h5>
+            <div class="view-toggle">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" id="tableView" onclick="switchView('table')">
+                        <i class="fas fa-table"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="cardView" onclick="switchView('card')">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if centres %}
+                <!-- Vue tableau -->
+                <div id="tableViewContent" class="table-responsive">
+                    <table class="table table-hover mb-0" id="centersTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0">
+                                    <i class="fas fa-building me-1"></i>Nom
+                                </th>
+                                <th class="border-0">
+                                    <i class="fas fa-tags me-1"></i>Type
+                                </th>
+                                <th class="border-0">
+                                    <i class="fas fa-map-marker-alt me-1"></i>Quartier
+                                </th>
+                                <th class="border-0">
+                                    <i class="fas fa-file-alt me-1"></i>Description
+                                </th>
+                                <th class="border-0">
+                                    <i class="fas fa-map me-1"></i>Localisation
+                                </th>
+                                <th class="border-0 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for centre in centres %}
+                            <tr class="center-row" data-name="{{ centre.nom|lower }}" data-type="{{ centre.type }}" data-quartier="{{ centre.quartier.id|default:'' }}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="center-avatar me-3">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ centre.nom }}</h6>
+                                            <small class="text-muted">ID: #{{ centre.id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ centre.get_type_display }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                        {{ centre.quartier.nom|default:"Non assigné" }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="description-cell">
+                                        {{ centre.description|truncatechars:80 }}
+                                        {% if centre.description|length > 80 %}
+                                            <a href="#" class="text-primary ms-1" onclick="showFullDescription('{{ centre.description|escapejs }}')">Voir plus</a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if centre.latitude and centre.longitude %}
+                                        <a href="https://www.google.com/maps?q={{ centre.latitude }},{{ centre.longitude }}" 
+                                           target="_blank" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-external-link-alt me-1"></i>Voir sur carte
+                                        </a>
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Non localisé
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="window.location.href='{% url 'modifier_centre_interet' centre.id %}'">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteCenter({{ centre.id }}, '{{ centre.nom|escapejs }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Vue cartes -->
+                <div id="cardViewContent" class="d-none p-4">
+                    <div class="row g-4" id="cardsContainer">
+                        {% for centre in centres %}
+                        <div class="col-md-6 col-lg-4 center-card" data-name="{{ centre.nom|lower }}" data-type="{{ centre.type }}" data-quartier="{{ centre.quartier.id|default:'' }}">
+                            <div class="card h-100 center-item-card">
+                                <div class="card-header bg-light">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ centre.nom }}</h6>
+                                        <span class="badge bg-primary">{{ centre.get_type_display }}</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ centre.quartier.nom|default:"Non assigné" }}
+                                        </small>
+                                    </div>
+                                    <p class="card-text">{{ centre.description|truncatechars:100 }}</p>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        {% if centre.latitude and centre.longitude %}
+                                            <a href="https://www.google.com/maps?q={{ centre.latitude }},{{ centre.longitude }}" 
+                                               target="_blank" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-map me-1"></i>Carte
+                                            </a>
+                                        {% else %}
+                                            <span class="badge bg-warning">Non localisé</span>
+                                        {% endif %}
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-outline-primary btn-sm" onclick="window.location.href='{% url 'modifier_centre_interet' centre.id %}'">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm" onclick="deleteCenter({{ centre.id }}, '{{ centre.nom|escapejs }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <!-- État vide -->
+                <div class="empty-state text-center py-5">
+                    <div class="empty-icon mb-4">
+                        <i class="fas fa-compass fa-4x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">Aucun centre d'intérêt</h4>
+                    <p class="text-muted mb-4">Vous n'avez encore enregistré aucun centre d'intérêt dans votre commune.</p>
+                    <a href="{% url 'ajouter_centre_interet' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Ajouter le premier centre
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour description complète -->
+<div class="modal fade" id="descriptionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Description complète</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="fullDescription"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                    <h6>Êtes-vous sûr de vouloir supprimer ce centre d'intérêt ?</h6>
+                    <p class="text-muted mb-0">
+                        Centre : <strong id="centerToDelete"></strong>
+                    </p>
+                    <small class="text-muted">Cette action est irréversible.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Annuler
+                </button>
+                <form method="post" id="deleteForm" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Supprimer définitivement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles personnalisés -->
+<style>
+    /* Vos styles CSS existants restent inchangés */
+    /* ... */
+</style>
+
+<script>
+    // Fonction de recherche
+    document.getElementById('searchInput').addEventListener('input', function() {
+        filterCenters();
+    });
+
+    document.getElementById('typeFilter').addEventListener('change', function() {
+        filterCenters();
+    });
+
+    document.getElementById('quartierFilter').addEventListener('change', function() {
+        filterCenters();
+    });
+
+    function filterCenters() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const typeFilter = document.getElementById('typeFilter').value;
+        const quartierFilter = document.getElementById('quartierFilter').value;
+        
+        const rows = document.querySelectorAll('.center-row');
+        const cards = document.querySelectorAll('.center-card');
+        
+        [...rows, ...cards].forEach(item => {
+            const name = item.getAttribute('data-name');
+            const type = item.getAttribute('data-type');
+            const quartierId = item.getAttribute('data-quartier');
+            
+            const nameMatch = !searchTerm || name.includes(searchTerm);
+            const typeMatch = !typeFilter || type === typeFilter;
+            const quartierMatch = !quartierFilter || quartierId === quartierFilter;
+            
+            if (nameMatch && typeMatch && quartierMatch) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('typeFilter').value = '';
+        document.getElementById('quartierFilter').value = '';
+        filterCenters();
+    }
+
+    function switchView(view) {
+        const tableView = document.getElementById('tableViewContent');
+        const cardView = document.getElementById('cardViewContent');
+        const tableBtn = document.getElementById('tableView');
+        const cardBtn = document.getElementById('cardView');
+        
+        if (view === 'table') {
+            tableView.classList.remove('d-none');
+            cardView.classList.add('d-none');
+            tableBtn.classList.add('active');
+            cardBtn.classList.remove('active');
+        } else {
+            tableView.classList.add('d-none');
+            cardView.classList.remove('d-none');
+            tableBtn.classList.remove('active');
+            cardBtn.classList.add('active');
+        }
+    }
+
+    function showFullDescription(description) {
+        document.getElementById('fullDescription').textContent = description;
+        new bootstrap.Modal(document.getElementById('descriptionModal')).show();
+    }
+
+    function deleteCenter(id, nom) {
+        document.getElementById('centerToDelete').textContent = nom;
+        document.getElementById('deleteForm').action = `{% url 'supprimer_centre_interet' 0 %}`.replace('0', id);
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+</script>
+{% endblock %}

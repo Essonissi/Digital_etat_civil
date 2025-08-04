@@ -3,42 +3,82 @@
 {% block title %}Mes demandes{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <div class="row">
-    <!-- Colonne principale : Filtres + Liste des demandes -->
-    <div class="col-md-12">
-      <h2 class="mb-4">Mes demandes</h2>
-      <!-- Formulaire de recherche/filtre -->
-      <form method="get" class="row g-3 mb-4">
-        <div class="col-md-3">
-          <select name="statut" class="form-select">
-            <option value="">-- Statut --</option>
-            {% for value, label in statuts %}
-              <option value="{{ value }}" {% if filtre_statut == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
+<div class="container-fluid">
+  <!-- En-tête de la page -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="page-header bg-gradient-primary text-white rounded-4 p-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h1 class="mb-2"><i class="fas fa-folder-open me-3"></i>Mes demandes</h1>
+            <p class="mb-0 opacity-90">Gérez et suivez toutes vos demandes de documents</p>
+          </div>
+          <div class="d-none d-md-block">
+            <a href="{% url 'nouvelle_demande' %}" class="btn btn-light btn-lg shadow-sm">
+              <i class="fas fa-plus me-2"></i>Nouvelle demande
+            </a>
+          </div>
         </div>
-        <div class="col-md-3">
-          <select name="type" class="form-select">
-            <option value="">-- Type de document --</option>
-            {% for doc in documents %}
-              <option value="{{ doc.id }}" {% if filtre_type == doc.id|stringformat:"s" %}selected{% endif %}>{{ doc.type }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col-md-3">
-          <input type="date" name="date" class="form-control" value="{{ filtre_date|default_if_none:'' }}">
-        </div>
-        <div class="col-md-3">
-          <button type="submit" class="btn btn-outline-success w-100">
-            <i class="fas fa-search me-1"></i>Rechercher
-          </button>
-        </div>
-      </form>
+      </div>
+    </div>
+  </div>
 
+  <div class="row">
+    <!-- Section principale -->
+    <div class="col-lg-9 mb-4">
+      <!-- Bouton mobile pour nouvelle demande -->
+      <div class="d-md-none mb-4">
+        <a href="{% url 'nouvelle_demande' %}" class="btn btn-success btn-lg w-100 py-3 shadow-sm">
+          <i class="fas fa-plus me-2"></i>Faire une nouvelle demande
+        </a>
+      </div>
+
+      <!-- Formulaire de recherche/filtre -->
+      <div class="card shadow-sm mb-4 filter-card">
+        <div class="card-header bg-light border-bottom">
+          <h5 class="mb-0">
+            <i class="fas fa-filter me-2 text-primary"></i>Filtres de recherche
+          </h5>
+        </div>
+        <div class="card-body">
+          <form method="get" class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label small text-muted fw-medium">Statut</label>
+              <select name="statut" class="form-select">
+                <option value="">Tous les statuts</option>
+                {% for value, label in statuts %}
+                  <option value="{{ value }}" {% if filtre_statut == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small text-muted fw-medium">Type de document</label>
+              <select name="type" class="form-select">
+                <option value="">Tous les types</option>
+                {% for doc in documents %}
+                  <option value="{{ doc.id }}" {% if filtre_type == doc.id|stringformat:"s" %}selected{% endif %}>{{ doc.type }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small text-muted fw-medium">Date</label>
+              <input type="date" name="date" class="form-control" value="{{ filtre_date|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small text-muted">&nbsp;</label>
+              <button type="submit" class="btn btn-primary w-100 d-block shadow-sm">
+                <i class="fas fa-search me-1"></i>Rechercher
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Messages d'alerte -->
       {% if messages %}
         {% for message in messages %}
-          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
           </div>
@@ -46,71 +86,177 @@
       {% endif %}
 
       <!-- Tableau des demandes -->
-      <table class="table table-bordered table-hover align-middle">
-        <thead class="table-light">
-          <tr>
-            <th>Type</th>
-            <th>Date</th>
-            <th>Statut</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for demande in demandes %}
-            <tr>
-              <td>{{ demande.document.type }}</td>
-              <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
-              <td>
-                {% if demande.statut == 'en_attente' %}
-                  <span class="badge bg-warning text-dark">En attente</span>
-                {% elif demande.statut == 'validee' %}
-                  <span class="badge bg-success">Validée</span>
-                {% elif demande.statut == 'rejetee' %}
-                  <span class="badge bg-danger">Rejetée</span>
-                {% else %}
-                  <span class="badge bg-secondary">{{ demande.statut }}</span>
-                {% endif %}
-              </td>
-              <td>
-                <button type="button" class="btn btn-sm btn-outline-primary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#detailDemandeModal"
-                        data-demande-id="{{ demande.id }}">
-                  Voir
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-danger"
-                        data-bs-toggle="modal"
-                        data-bs-target="#deleteDemandeModal"
-                        data-demande-id="{{ demande.id }}">
-                  Supprimer
-                </button>
-              </td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="4" class="text-center text-muted">Aucune demande trouvée.</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="card shadow-sm table-card">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>Liste des demandes
+          </h5>
+          <span class="badge bg-primary rounded-pill fs-6 px-3 py-2">{{ demandes|length }} demande{{ demandes|length|pluralize }}</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="border-0 px-4 py-3">
+                    <i class="fas fa-file-alt me-2 text-muted"></i>Type de document
+                  </th>
+                  <th class="border-0 py-3">
+                    <i class="fas fa-calendar me-2 text-muted"></i>Date de demande
+                  </th>
+                  <th class="border-0 py-3">
+                    <i class="fas fa-info-circle me-2 text-muted"></i>Statut
+                  </th>
+                  <th class="border-0 py-3 text-center">
+                    <i class="fas fa-cogs me-2 text-muted"></i>Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for demande in demandes %}
+                  <tr class="demande-row">
+                    <td class="px-4 py-3">
+                      <div class="d-flex align-items-center">
+                        <div class="document-icon me-3">
+                          <i class="fas fa-file-text text-primary"></i>
+                        </div>
+                        <div>
+                          <div class="fw-medium text-dark">{{ demande.document.type }}</div>
+                          <small class="text-muted">Référence: #{{ demande.id|stringformat:"04d" }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="py-3">
+                      <div class="date-info">
+                        <div class="fw-medium text-dark">{{ demande.date_demande|date:"d/m/Y" }}</div>
+                        <small class="text-muted">{{ demande.date_demande|date:"H:i" }}</small>
+                      </div>
+                    </td>
+                    <td class="py-3">
+                      {% if demande.statut == 'en_attente' %}
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-medium">
+                          <i class="fas fa-hourglass-half me-1"></i>En attente
+                        </span>
+                      {% elif demande.statut == 'validee' %}
+                        <span class="badge bg-success rounded-pill px-3 py-2 fw-medium">
+                          <i class="fas fa-check-circle me-1"></i>Validée
+                        </span>
+                      {% elif demande.statut == 'traitee' %}
+                        <span class="badge bg-info rounded-pill px-3 py-2 fw-medium">
+                          <i class="fas fa-clipboard-check me-1"></i>Traitée
+                        </span>
+                      {% elif demande.statut == 'rejetee' %}
+                        <span class="badge bg-danger rounded-pill px-3 py-2 fw-medium">
+                          <i class="fas fa-times-circle me-1"></i>Rejetée
+                        </span>
+                      {% else %}
+                        <span class="badge bg-secondary rounded-pill px-3 py-2 fw-medium">{{ demande.statut }}</span>
+                      {% endif %}
+                    </td>
+                    <td class="py-3 text-center">
+                      <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-primary shadow-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#detailDemandeModal"
+                                data-demande-id="{{ demande.id }}"
+                                title="Voir les détails">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        
+                        {% if demande.statut == "traitee" and demande.fichier_confirmation %}
+                          <a href="{{ demande.fichier_confirmation.url }}" 
+                             class="btn btn-sm btn-outline-success shadow-sm" 
+                             download
+                             title="Télécharger la confirmation">
+                            <i class="fas fa-download"></i>
+                          </a>
+                        {% endif %}
+                        
+                        <button type="button" class="btn btn-sm btn-outline-danger shadow-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteDemandeModal"
+                                data-demande-id="{{ demande.id }}"
+                                title="Supprimer">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="4" class="text-center py-5">
+                      <div class="empty-state">
+                        <i class="fas fa-inbox fa-4x text-muted mb-4 opacity-50"></i>
+                        <h5 class="text-muted mb-3">Aucune demande trouvée</h5>
+                        <p class="text-muted mb-4">Vous n'avez pas encore fait de demande ou aucune ne correspond aux critères de recherche.</p>
+                        <a href="{% url 'nouvelle_demande' %}" class="btn btn-primary btn-lg shadow-sm">
+                          <i class="fas fa-plus me-2"></i>Faire votre première demande
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-3">
+      <div class="sticky-sidebar">
+        
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="card shadow-sm quick-actions-card">
+          <div class="card-header bg-gradient-info text-white">
+            <h6 class="mb-0">
+              <i class="fas fa-bolt me-2"></i>Actions rapides
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <a href="{% url 'citoyen_dashboard' %}" class="btn btn-outline-primary btn-sm shadow-sm">
+                <i class="fas fa-home me-2"></i>Retour à l'accueil
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Modal Bootstrap -->
+<!-- Modal de détail -->
 <div class="modal fade" id="detailDemandeModal" tabindex="-1" aria-labelledby="detailDemandeModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="detailDemandeModalLabel">Détail de la demande</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="detailDemandeModalLabel">
+          <i class="fas fa-file-alt me-2"></i>Détail de la demande
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body">
         <div id="modal-detail-content">
-          <div class="text-center text-muted">
-            <span class="spinner-border spinner-border-sm"></span> Chargement...
+          <div class="text-center text-muted py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-3">Chargement des détails...</p>
           </div>
         </div>
+      </div>
+      <div class="modal-footer bg-light border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+        <div class="download-section" style="display: none;">
+          <!-- Le bouton de téléchargement sera ajouté dynamiquement ici -->
+        </div>
+        <a href="{% url 'nouvelle_demande' %}" class="btn btn-success">
+          <i class="fas fa-plus me-2"></i>Nouvelle demande
+        </a>
       </div>
     </div>
   </div>
@@ -119,64 +265,585 @@
 <!-- Modal de confirmation de suppression -->
 <div class="modal fade" id="deleteDemandeModal" tabindex="-1" aria-labelledby="deleteDemandeModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
+    <div class="modal-content shadow-lg border-0">
       <form id="delete-demande-form" method="post">
         {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteDemandeModalLabel">Confirmer la suppression</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="deleteDemandeModalLabel">
+            <i class="fas fa-exclamation-triangle me-2"></i>Confirmer la suppression
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
         <div class="modal-body">
-          <p>Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.</p>
+          <div class="alert alert-warning border-0 shadow-sm">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Attention !</strong> Cette action est irréversible.
+          </div>
+          <p class="mb-0">Êtes-vous sûr de vouloir supprimer cette demande ?</p>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer border-0">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button type="submit" class="btn btn-danger">Supprimer</button>
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash me-2"></i>Supprimer
+          </button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Bootstrap JS (si pas déjà inclus) -->
+<style>
+/* Variables CSS pour cohérence */
+:root {
+  --primary-color: #15706a;
+  --success-color: #1ec98e;
+  --info-color: #0dcaf0;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --border-radius: 0.75rem;
+  --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --box-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --box-shadow-lg: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.175);
+  --transition: all 0.2s ease-in-out;
+}
+
+/* En-tête de page */
+.page-header {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #1ec98e 100%);
+  border: none;
+  border-radius: var(--border-radius) !important;
+}
+
+/* Cartes principales */
+.filter-card,
+.table-card,
+.summary-card,
+.quick-actions-card {
+  border: none;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.filter-card:hover,
+.table-card:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* En-têtes de cartes améliorés */
+.card-header {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+}
+
+.card-header h5,
+.card-header h6 {
+  color: #495057;
+}
+
+/* Tableau des demandes */
+.table-card .table th {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6c757d;
+  background-color: #f8f9fa;
+}
+
+.demande-row {
+  transition: var(--transition);
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.demande-row:hover {
+  background-color: rgba(21, 112, 106, 0.05);
+  transform: translateX(2px);
+}
+
+.demande-row:last-child {
+  border-bottom: none;
+}
+
+.document-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(21, 112, 106, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.date-info {
+  line-height: 1.3;
+}
+
+/* État vide amélioré */
+.empty-state {
+  padding: 3rem 2rem;
+}
+
+.empty-state i {
+  opacity: 0.4;
+}
+
+/* Statistiques rapides */
+.quick-stats .stat-row {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f3f4;
+  transition: var(--transition);
+}
+
+.quick-stats .stat-row:hover {
+  background-color: #f8f9fa;
+}
+
+.quick-stats .stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-icon {
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.stat-value {
+  font-size: 1rem;
+  color: #495057;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* Sidebar collante */
+.sticky-sidebar {
+  position: sticky;
+  top: 2rem;
+}
+
+/* Badges personnalisés */
+.badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.25px;
+}
+
+.badge i {
+  font-size: 0.7rem;
+}
+
+/* Groupes de boutons améliorés */
+.btn-group {
+  gap: 0.25rem;
+}
+
+.btn-group .btn {
+  border-radius: 0.375rem !important;
+  transition: var(--transition);
+}
+
+.btn-group .btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Boutons avec ombres */
+.btn.shadow-sm:hover {
+  box-shadow: var(--box-shadow-hover) !important;
+}
+
+/* Modales améliorées */
+.modal-content {
+  border: none;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow-lg);
+}
+
+.modal-header {
+  border: none;
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  border: none;
+  padding: 1.5rem;
+}
+
+/* Section de téléchargement dans le modal */
+.download-section {
+  margin-right: auto;
+}
+
+.download-section .btn {
+  margin-right: 0.5rem;
+}
+
+/* Gradients */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #1ec98e 100%);
+}
+
+.bg-gradient-info {
+  background: linear-gradient(135deg, var(--info-color) 0%, #6f42c1 100%);
+}
+
+/* Formulaires améliorés */
+.form-label.fw-medium {
+  font-weight: 500 !important;
+  margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+  border-radius: 0.5rem;
+  border: 1px solid #dee2e6;
+  transition: var(--transition);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(21, 112, 106, 0.25);
+}
+
+/* Alertes */
+.alert {
+  border-radius: var(--border-radius);
+  border: none;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .sticky-sidebar {
+    position: static;
+    margin-top: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .page-header .d-flex {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .table-responsive {
+    font-size: 0.9rem;
+  }
+  
+  .document-icon {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+@media (max-width: 576px) {
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .document-icon {
+    display: none;
+  }
+  
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.25em 0.5em;
+  }
+  
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+  
+  .empty-state i {
+    font-size: 2.5rem !important;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.filter-card,
+.table-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.summary-card,
+.quick-actions-card {
+  animation: slideInRight 0.6s ease-out;
+}
+
+.table-card {
+  animation-delay: 0.1s;
+}
+
+.summary-card {
+  animation-delay: 0.2s;
+}
+
+.quick-actions-card {
+  animation-delay: 0.3s;
+}
+
+/* Focus et accessibilité */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+  outline: none;
+}
+
+/* Améliorations visuelles */
+.shadow-sm {
+  box-shadow: var(--box-shadow) !important;
+}
+
+.shadow-lg {
+  box-shadow: var(--box-shadow-lg) !important;
+}
+
+.rounded-4 {
+  border-radius: var(--border-radius) !important;
+}
+
+/* Print styles */
+@media print {
+  .page-header,
+  .filter-card,
+  .sticky-sidebar,
+  .btn,
+  .modal {
+    display: none !important;
+  }
+  
+  .table-card {
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+  }
+}
+
+/* Animation pour les boutons de téléchargement */
+.btn-outline-success {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-outline-success::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-outline-success:hover::before {
+  left: 100%;
+}
+</style>
+
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$('#detailDemandeModal').on('show.bs.modal', function (event) {
-  var button = $(event.relatedTarget);
-  var demandeId = button.data('demande-id');
-  var modal = $(this);
-  modal.find('#modal-detail-content').html('<div class="text-center text-muted"><span class="spinner-border spinner-border-sm"></span> Chargement...</div>');
-  $.get('/demandes/demande/' + demandeId + '/', function(data) {
-    modal.find('#modal-detail-content').html(data);
-  }).fail(function() {
-    modal.find('#modal-detail-content').html('<div class="alert alert-danger">Erreur lors du chargement du détail.</div>');
+$(document).ready(function() {
+  // Gestion du modal de détail
+  $('#detailDemandeModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var demandeId = button.data('demande-id');
+    var modal = $(this);
+    
+    // Réinitialiser le contenu
+    modal.find('#modal-detail-content').html(`
+      <div class="text-center text-muted py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Chargement...</span>
+        </div>
+        <p class="mt-3">Chargement des détails...</p>
+      </div>
+    `);
+    
+    // Masquer la section de téléchargement par défaut
+    modal.find('.download-section').hide().empty();
+    
+    // Charger le contenu
+    $.get('/demandes/demande/' + demandeId + '/', function(data) {
+      modal.find('#modal-detail-content').html(data);
+      
+      // Vérifier si la demande a un fichier de confirmation disponible
+      if (data.includes('fichier_confirmation') || data.includes('traitee')) {
+        var downloadButton = `
+          <a href="/demandes/demande/${demandeId}/download/" 
+             class="btn btn-success shadow-sm" 
+             download
+             title="Télécharger la confirmation PDF">
+            <i class="fas fa-download me-2"></i>Télécharger la confirmation
+          </a>
+        `;
+        modal.find('.download-section').html(downloadButton).show();
+      }
+      
+    }).fail(function() {
+      modal.find('#modal-detail-content').html(`
+        <div class="alert alert-danger border-0">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Erreur lors du chargement du détail.
+        </div>
+      `);
+    });
+  });
+
+  // Gestion du modal de suppression
+  $('#deleteDemandeModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var demandeId = button.data('demande-id');
+    var form = $('#delete-demande-form');
+    form.attr('action', '/demandes/demande/' + demandeId + '/supprimer/');
+  });
+
+  // Animation pour les lignes du tableau
+  $('.demande-row').on('mouseenter', function() {
+    $(this).find('.btn-group').addClass('animate__animated animate__fadeIn');
+  });
+
+  // Amélioration de l'accessibilité
+  $('button[data-bs-toggle="modal"]').on('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      $(this).click();
+    }
+  });
+
+  // Gestion des tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+
+  // Animation pour les boutons de téléchargement
+  $('.btn-outline-success').on('click', function() {
+    var btn = $(this);
+    var originalHtml = btn.html();
+    
+    btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Téléchargement...');
+    btn.prop('disabled', true);
+    
+    setTimeout(function() {
+      btn.html('<i class="fas fa-check me-2"></i>Téléchargé !');
+      setTimeout(function() {
+        btn.html(originalHtml);
+        btn.prop('disabled', false);
+      }, 2000);
+    }, 1000);
+  });
+
+  // Animation d'apparition progressive des lignes
+  $('.demande-row').each(function(index) {
+    $(this).css({
+      'animation': 'fadeInUp 0.6s ease-out',
+      'animation-delay': (index * 0.1) + 's',
+      'animation-fill-mode': 'both'
+    });
+  });
+
+  // Affichage conditionnel des éléments selon l'état
+  if ($('.demande-row').length === 0) {
+    console.log('Aucune demande trouvée');
+  } else {
+    // Compter les demandes traitées avec fichiers disponibles
+    var demandesAvecFichier = $('.btn-outline-success').length;
+    if (demandesAvecFichier > 0) {
+      console.log(`${demandesAvecFichier} demande(s) avec fichier de confirmation disponible`);
+    }
+  }
+
+  // Amélioration de l'expérience utilisateur pour les filtres
+  $('form select, form input[type="date"]').on('change', function() {
+    $(this).closest('form').addClass('filter-loading');
+  });
+
+  // Gestion des alertes auto-dismiss
+  $('.alert-dismissible').each(function() {
+    var alert = $(this);
+    setTimeout(function() {
+      alert.fadeOut();
+    }, 5000);
   });
 });
 
-$('#deleteDemandeModal').on('show.bs.modal', function (event) {
-  var button = $(event.relatedTarget);
-  var demandeId = button.data('demande-id');
-  var form = $('#delete-demande-form');
-  form.attr('action', '/demandes/demande/' + demandeId + '/supprimer/');
+// Fonction pour réinitialiser les filtres
+function resetFilters() {
+  $('form select, form input[type="date"]').val('');
+  $('form').submit();
+}
+
+// Fonction utilitaire pour télécharger tous les fichiers disponibles
+function downloadAllAvailable() {
+  $('.btn-outline-success').each(function(index) {
+    var btn = this;
+    setTimeout(function() {
+      btn.click();
+    }, index * 500); // Délai progressif pour éviter la surcharge
+  });
+}
+
+// Fonction pour exporter les données (future fonctionnalité)
+function exportData(format) {
+  console.log('Export en format:', format);
+  // À implémenter selon les besoins
+}
+
+// Gestion du thème sombre (future fonctionnalité)
+function toggleTheme() {
+  document.body.classList.toggle('dark-theme');
+  localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+}
+
+// Restaurer le thème au chargement
+$(document).ready(function() {
+  var savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-theme');
+  }
 });
 </script>
-
-<style>
-.card {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-}
-.bg-opacity-10 {
-  background-color: rgba(var(--bs-bg-opacity-color), 0.1) !important;
-}
-@media (max-width: 768px) {
-  .row.g-3 .col-6 {
-    margin-bottom: 1rem;
-  }
-}
-</style>
 {% endblock %}

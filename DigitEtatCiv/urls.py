@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
+from django.conf import settings
+from django.conf.urls.static import static
 # Import des ViewSets
 from comptes.views import UserViewSet
 from communes.views import CommuneViewSet, MairieViewSet
@@ -30,9 +31,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),                  # API REST
     path('', include('comptes.urls')),           # Vues login, dashboard, etc.
-    path('documents/', include('documents.urls')),  # <--- ajoute cette ligne
+    path('documents/', include('documents.urls')),
     path('documents-citoyen/', liste_documents_citoyen, name='documents_citoyen'),
     path('demandes/', include('demandes.urls')),
+    path('centres/', include('centres.urls')),
     path('agent/', include(('demandes.agent_urls', 'agent'), namespace='agent')),
+    path('operateur/', include(('demandes.operateur_urls', 'operateur'), namespace='operateur')),
     path('notifications/', include('notifications.urls')),    
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

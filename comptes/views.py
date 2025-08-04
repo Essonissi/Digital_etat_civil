@@ -20,10 +20,11 @@ from demandes.models import Demande
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from django.core.mail import send_mail
+from django.core.mail import send_mail,EmailMultiAlternatives
 from django.contrib.auth import get_user_model
 from django.utils.http import urlsafe_base64_decode
 from django.http import HttpResponse
+from django.contrib import messages
 
 # --- API ViewSet ---
 class UserViewSet(viewsets.ModelViewSet):
@@ -53,19 +54,7 @@ def login_view(request):
 
     User = get_user_model()
 
-def verifier_email(request, uidb64, token):
-    try:
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
 
-    if user and default_token_generator.check_token(user, token):
-        user.email_verifie = True
-        user.save()
-        return HttpResponse("Email vérifié avec succès !")
-    else:
-        return HttpResponse("Lien invalide ou expiré.")
 
 # --- Vue de connexion citoyen ---
 def citoyen_login_view(request):
@@ -82,6 +71,10 @@ def citoyen_login_view(request):
                 error = "Nom d'utilisateur ou mot de passe incorrect."
             elif user.role != 'citoyen':
                 error = "Accès réservé aux citoyens."
+            elif not user.is_active:
+                error = "Votre compte n'est pas encore activé. Veuillez vérifier votre email."
+            elif not user.email_verifie:
+                error = "Veuillez d'abord vérifier votre adresse email en cliquant sur le lien reçu par mail."
             else:
                 login(request, user)
                 return redirect('citoyen_dashboard')
@@ -100,19 +93,17 @@ def citoyen_register_view(request):
         first_name = request.POST.get('first_name')
         telephone = request.POST.get('telephone')
         sexe = request.POST.get('sexe')
-
+        
         if password != password2:
             error = "Les mots de passe ne correspondent pas."
             return render(request, 'comptes/citoyen_signup.html', {'error': error})
-
         if User.objects.filter(username=username).exists():
             error = "Ce nom d'utilisateur existe déjà."
             return render(request, 'comptes/citoyen_signup.html', {'error': error})
-
         if User.objects.filter(email=email).exists():
             error = "Cet email est déjà utilisé."
             return render(request, 'comptes/citoyen_signup.html', {'error': error})
-
+        
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -123,24 +114,73 @@ def citoyen_register_view(request):
         )
         user.role = 'citoyen'
         user.telephone = telephone
+        
+        # Nouveau code ajouté
+        user.is_active = False  # Empêche connexion avant vérification
         user.save()
+        envoyer_email_verification(request, user)
+        
+        # Message de succès
+        messages.success(request, 
+            f"Compte créé avec succès ! Un email de vérification a été envoyé à {email}. "
+            "Veuillez vérifier votre boîte mail et cliquer sur le lien de confirmation avant de vous connecter."
+        )
+        
         return redirect('citoyen_login')
-
     return render(request, 'comptes/citoyen_signup.html', {'error': error})
+
+def verifier_email(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user and default_token_generator.check_token(user, token):
+        # Activer le compte ET marquer l'email comme vérifié
+        user.email_verifie = True
+        user.is_active = True  # ✅ Activer le compte
+        user.save()
+        
+        messages.success(request, 
+            f"Félicitations {user.first_name} ! Votre adresse email a été vérifiée avec succès. "
+            "Vous pouvez maintenant vous connecter."
+        )
+        return redirect('citoyen_login')
+    else:
+        messages.error(request, 
+            "Lien de vérification invalide ou expiré. "
+            "Veuillez demander un nouveau lien de vérification."
+        )
+        return redirect('citoyen_login')
 
 def envoyer_email_verification(request, user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
     lien = request.build_absolute_uri(reverse('verifier_email', args=[uid, token]))
-    
-    message = f"Bonjour {user.username},\n\nCliquez sur ce lien pour confirmer votre adresse email : {lien}"
-    send_mail(
-        "Confirmation de votre adresse email",
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=False
-    )
+
+    subject = "Confirmation de votre adresse email"
+    text_content = f"""
+Bonjour {user.username},
+
+Merci de vous être inscrit.
+
+Veuillez cliquer sur le lien suivant pour vérifier votre adresse email :
+{lien}
+
+Ce lien est valable pendant 6 heures.
+"""
+    html_content = f"""
+<p>Bonjour <strong>{user.username}</strong>,</p>
+<p>Merci de vous être inscrit.</p>
+<p>Veuillez cliquer sur le lien suivant pour <strong>confirmer votre adresse email</strong> :</p>
+<p><a href="{lien}">Confirmer mon email</a></p>
+<p style="color:gray;">Ce lien expirera dans environ 6 heures.</p>
+"""
+
+    email = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
+    email.attach_alternative(html_content, "text/html")
+    email.send(fail_silently=False)
 
 @login_required
 def choisir_localisation(request):
@@ -160,6 +200,24 @@ def choisir_localisation(request):
         'communes': communes
     })
 
+def renvoyer_email_verification(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email, role='citoyen')
+            if user.email_verifie:
+                messages.info(request, "Votre email est déjà vérifié.")
+            else:
+                envoyer_email_verification(request, user)
+                messages.success(request, 
+                    f"Un nouveau lien de vérification a été envoyé à {email}."
+                )
+        except User.DoesNotExist:
+            messages.error(request, "Aucun compte citoyen trouvé avec cette adresse email.")
+        
+        return redirect('citoyen_login')
+    
+    return render(request, 'comptes/renvoyer_verification.html')
 
 # --- Dashboards selon rôle ---
 @login_required
@@ -205,6 +263,7 @@ def citoyen_dashboard(request):
     demandes_validees = [d for d in demandes if d.statut == 'validee']
     demandes_en_attente = [d for d in demandes if d.statut == 'en_attente']
     demandes_rejetees = [d for d in demandes if d.statut == 'rejetee']
+    demandes_traitees = [d for d in demandes if d.statut == 'traitee']
 
     return render(request, 'citoyen/dashboard.html', {
         'documents': documents,
@@ -213,6 +272,7 @@ def citoyen_dashboard(request):
         'demandes_validees': demandes_validees,
         'demandes_en_attente': demandes_en_attente,
         'demandes_rejetees': demandes_rejetees,
+        'demandes_traitees': demandes_traitees,
     })
 # --- Création des agents et des opérateurs par l'admin ---
 
@@ -262,7 +322,7 @@ def create_agent_or_operateur(request):
 
 
 
-# --- les liens pour la liste des opérateurs et agents ---
+# --- les vues pour la liste des opérateurs et agents ---
 
 @login_required
 @role_required(['admin'])

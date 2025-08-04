@@ -1,56 +1,685 @@
 {% extends "layouts/base_admin.html" %}
 {% block title %}Détail de la demande{% endblock %}
+
 {% block content %}
-<h2>Détail de la demande</h2>
-<ul class="list-group mb-3">
-  <li class="list-group-item"><strong>Type :</strong> {{ demande.document.type }}</li>
-  <li class="list-group-item"><strong>Date :</strong> {{ demande.date_demande|date:"d/m/Y H:i" }}</li>
-  <li class="list-group-item"><strong>Statut :</strong>
-    {% if demande.statut == 'en_attente' %}
-      <span class="badge bg-warning text-dark">En attente</span>
-    {% elif demande.statut == 'validee' %}
-      <span class="badge bg-success">Validée</span>
-    {% elif demande.statut == 'rejetee' %}
-      <span class="badge bg-danger">Rejetée</span>
-    {% else %}
-      <span class="badge bg-secondary">{{ demande.statut }}</span>
-    {% endif %}
-  </li>
-  <li class="list-group-item"><strong>Demandeur :</strong> {{ demande.user.first_name }} {{ demande.user.last_name }} ({{ demande.user.username }})</li>
-  <li class="list-group-item"><strong>Motif :</strong> {{ demande.motif|default:"-" }}</li>
-  {% if demande.motif_rejet %}
-    <li class="list-group-item"><strong>Motif de rejet :</strong> {{ demande.motif_rejet }}</li>
-  {% endif %}
-</ul>
+<div class="container-fluid">
+  <!-- En-tête avec breadcrumb -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'agent:liste_demandes' %}" class="text-primary">Liste des demandes</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Détail #{{ demande.id }}</li>
+        </ol>
+      </nav>
 
-<h4>Fichiers joints</h4>
-<ul>
-  {% for fichier in fichiers %}
-    <li>
-      <a href="{{ MEDIA_URL }}{{ fichier.chemin }}" target="_blank">{{ fichier.nom_fichier }}</a>
-    </li>
-  {% empty %}
-    <li class="text-muted">Aucun fichier joint.</li>
-  {% endfor %}
-</ul>
-
-{% if demande.statut == 'en_attente' %}
-  <form method="post" class="mt-4">
-    {% csrf_token %}
-    {% if error %}
-      <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
-    <button type="submit" name="action" value="valider" class="btn btn-success me-2">Valider</button>
-    <button type="button" class="btn btn-danger" data-bs-toggle="collapse" data-bs-target="#motifRejetCollapse">Rejeter</button>
-    <div class="collapse mt-3" id="motifRejetCollapse">
-      <div class="mb-2">
-        <label for="motif_rejet" class="form-label">Motif du rejet</label>
-        <textarea name="motif_rejet" id="motif_rejet" class="form-control"></textarea>
+      <!-- Titre principal avec statut -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+          <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+            <i class="fas fa-file-alt text-primary fs-4"></i>
+          </div>
+          <div>
+            <h2 class="mb-1">Demande #{{ demande.id }}</h2>
+            <p class="text-muted mb-0">{{ demande.document.type }}</p>
+          </div>
+        </div>
+        
+        <!-- Badge de statut principal -->
+        <div class="text-end">
+          {% if demande.statut == 'en_attente' %}
+            <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+              <i class="fas fa-clock me-2"></i>En attente
+            </span>
+          {% elif demande.statut == 'validee' %}
+            <span class="badge bg-success fs-6 px-3 py-2">
+              <i class="fas fa-check-circle me-2"></i>Validée
+            </span>
+          {% elif demande.statut == 'rejetee' %}
+            <span class="badge bg-danger fs-6 px-3 py-2">
+              <i class="fas fa-times-circle me-2"></i>Rejetée
+            </span>
+          {% else %}
+            <span class="badge bg-secondary fs-6 px-3 py-2">{{ demande.statut }}</span>
+          {% endif %}
+          <div class="small text-muted mt-1">
+            Dernière modification : {{ demande.date_demande|date:"d/m/Y à H:i" }}
+          </div>
+        </div>
       </div>
-      <button type="submit" name="action" value="rejeter" class="btn btn-danger">Confirmer le rejet</button>
     </div>
-  </form>
-{% endif %}
+  </div>
 
-<a href="{% url 'agent:liste_demandes' %}" class="btn btn-secondary mt-3">Retour à la liste</a>
+  <div class="row">
+    <!-- Colonne principale - Informations de la demande -->
+    <div class="col-lg-9">
+      <!-- Carte des informations principales -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-gradient-primary text-white border-0">
+          <h5 class="mb-0">
+            <i class="fas fa-info-circle me-2"></i>Informations de la demande
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="info-item">
+                <label class="text-muted small text-uppercase fw-bold mb-2">Type de document</label>
+                <div class="h6 mb-0 text-dark">{{ demande.document.type }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-item">
+                <label class="text-muted small text-uppercase fw-bold mb-2">Date de demande</label>
+                <div class="h6 mb-0 text-dark">{{ demande.date_demande|date:"d/m/Y à H:i" }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-item">
+                <label class="text-muted small text-uppercase fw-bold mb-2">Demandeur</label>
+                <div class="h6 mb-0 text-dark">
+                  <i class="fas fa-user me-2 text-primary"></i>
+                  {{ demande.user.first_name }} {{ demande.user.last_name }}
+                </div>
+                <small class="text-muted">{{ demande.user.username }}</small>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-item">
+                <label class="text-muted small text-uppercase fw-bold mb-2">Référence</label>
+                <div class="h6 mb-0">
+                  <code class="bg-light px-3 py-2 rounded text-primary fw-bold">#{{ demande.id }}</code>
+                </div>
+              </div>
+            </div>
+            {% if demande.motif %}
+            <div class="col-12">
+              <div class="info-item">
+                <label class="text-muted small text-uppercase fw-bold mb-2">Motif de la demande</label>
+                <div class="bg-light p-3 rounded border-start border-primary border-4">
+                  <i class="fas fa-quote-left text-primary me-2"></i>
+                  {{ demande.motif }}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            {% if demande.motif_rejet %}
+            <div class="col-12">
+              <div class="info-item">
+                <label class="text-danger small text-uppercase fw-bold mb-2">
+                  <i class="fas fa-exclamation-triangle me-1"></i>Motif de rejet
+                </label>
+                <div class="alert alert-danger border-0 shadow-sm">
+                  <i class="fas fa-times-circle me-2"></i>
+                  {{ demande.motif_rejet }}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Carte des fichiers joints -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-gradient-success text-white border-0">
+          <h5 class="mb-0">
+            <i class="fas fa-paperclip me-2"></i>Pièces justificatives 
+            <span class="badge bg-white text-success ms-2">{{ fichiers|length }}</span>
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          {% if fichiers %}
+            <div class="row g-3">
+              {% for fichier in fichiers %}
+                <div class="col-md-6 col-xl-4">
+                  <div class="file-item card h-100 border-0 shadow-sm">
+                    <div class="card-body p-3">
+                      <div class="d-flex align-items-start">
+                        <div class="file-icon me-3 mt-1">
+                          {% if fichier.nom_fichier|slice:"-4:" == ".pdf" %}
+                            <i class="fas fa-file-pdf text-danger fs-3"></i>
+                          {% elif ".jpg" in fichier.nom_fichier or ".jpeg" in fichier.nom_fichier or ".png" in fichier.nom_fichier %}
+                            <i class="fas fa-file-image text-info fs-3"></i>
+                          {% else %}
+                            <i class="fas fa-file-alt text-secondary fs-3"></i>
+                          {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                          <div class="fw-semibold text-truncate mb-2" title="{{ fichier.nom_fichier }}">
+                            {{ fichier.nom_fichier }}
+                          </div>
+                          <div class="d-flex flex-column gap-2">
+                            <a href="/media/{{ fichier.chemin }}" 
+                               target="_blank" 
+                               class="btn btn-sm btn-outline-primary"
+                               onclick="return testFileAccess(this.href)">
+                              <i class="fas fa-external-link-alt me-1"></i>Ouvrir
+                            </a>
+                            {% if fichier.nom_fichier|slice:"-4:" == ".pdf" %}
+                              <button type="button" 
+                                      class="btn btn-sm btn-info text-white"
+                                      onclick="showPDF('/media/{{ fichier.chemin }}', '{{ fichier.nom_fichier|escapejs }}')">
+                                <i class="fas fa-eye me-1"></i>Prévisualiser
+                              </button>
+                            {% endif %}
+                            <a href="/media/{{ fichier.chemin }}" 
+                               download="{{ fichier.nom_fichier }}"
+                               class="btn btn-sm btn-success">
+                              <i class="fas fa-download me-1"></i>Télécharger
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-folder-open text-muted fs-1 mb-3"></i>
+              <h6 class="text-muted">Aucun fichier joint</h6>
+              <p class="text-muted mb-0">Cette demande ne contient aucune pièce justificative.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne latérale - Actions et historique -->
+    <div class="col-lg-3">
+      <!-- Actions de traitement -->
+      {% if demande.statut == 'en_attente' %}
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-gradient-warning text-white border-0">
+            <h6 class="mb-0">
+              <i class="fas fa-tasks me-2"></i>Actions de traitement
+            </h6>
+          </div>
+          <div class="card-body p-3">
+            <form method="post" id="traitementForm">
+              {% csrf_token %}
+              {% if error %}
+                <div class="alert alert-danger border-0 shadow-sm">
+                  <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                </div>
+              {% endif %}
+              
+              <!-- Boutons d'action -->
+              <div class="d-grid gap-2 mb-3">
+                <button type="button" 
+                        class="btn btn-success" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#validateModal">
+                  <i class="fas fa-check-circle me-2"></i>Valider
+                </button>
+                <button type="button" 
+                        class="btn btn-danger" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#rejectModal">
+                  <i class="fas fa-times-circle me-2"></i>Rejeter
+                </button>
+              </div>
+            </form>
+            
+            <hr class="my-3">
+            
+            <!-- Informations d'aide -->
+            <div class="alert alert-info border-0 small mb-0">
+              <i class="fas fa-lightbulb me-2"></i>
+              <strong>Conseil :</strong> Vérifiez tous les documents avant de prendre une décision.
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Historique/Timeline -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-gradient-info text-white border-0">
+          <h6 class="mb-0">
+            <i class="fas fa-history me-2"></i>Historique de la demande
+          </h6>
+        </div>
+        <div class="card-body p-3">
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-marker bg-primary"></div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <strong class="small">Demande créée</strong>
+                  <small class="text-muted">{{ demande.date_demande|date:"d/m/Y à H:i" }}</small>
+                </div>
+                <div class="timeline-body text-muted small">
+                  Par {{ demande.user.first_name }} {{ demande.user.last_name }}
+                </div>
+              </div>
+            </div>
+            
+            {% if demande.statut == 'validee' %}
+            <div class="timeline-item">
+              <div class="timeline-marker bg-success"></div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <strong class="small">Demande validée</strong>
+                  <small class="text-muted">{{ demande.date_demande|date:"d/m/Y à H:i" }}</small>
+                </div>
+              </div>
+            </div>
+            {% elif demande.statut == 'rejetee' %}
+            <div class="timeline-item">
+              <div class="timeline-marker bg-danger"></div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <strong class="small">Demande rejetée</strong>
+                  <small class="text-muted">{{ demande.date_demande|date:"d/m/Y à H:i" }}</small>
+                </div>
+                {% if demande.motif_rejet %}
+                <div class="timeline-body text-muted small">
+                  {{ demande.motif_rejet }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-gradient-secondary text-white border-0">
+          <h6 class="mb-0">
+            <i class="fas fa-compass me-2"></i>Navigation
+          </h6>
+        </div>
+        <div class="card-body p-3">
+          <div class="d-grid">
+            <a href="{% url 'agent:liste_demandes' %}" class="btn btn-outline-primary">
+              <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de validation -->
+<div class="modal fade" id="validateModal" tabindex="-1" aria-labelledby="validateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="validateModalLabel">
+          <i class="fas fa-check-circle me-2"></i>Validation de la demande
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-success border-0">
+          <i class="fas fa-info-circle me-2"></i>
+          Vous êtes sur le point de <strong>valider</strong> cette demande. Cette action est définitive.
+        </div>
+        <p class="mb-0">Êtes-vous sûr de vouloir valider la demande #{{ demande.id }} ?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-success" onclick="submitAction('valider')">
+          <i class="fas fa-check me-2"></i>Confirmer la validation
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de rejet -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="rejectModalLabel">
+          <i class="fas fa-times-circle me-2"></i>Rejet de la demande
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning border-0">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Vous devez spécifier un motif pour rejeter cette demande.
+        </div>
+        <div class="mb-3">
+          <label for="motif_rejet_modal" class="form-label fw-semibold">
+            Motif du rejet <span class="text-danger">*</span>
+          </label>
+          <textarea name="motif_rejet" 
+                    id="motif_rejet_modal" 
+                    class="form-control" 
+                    rows="4" 
+                    placeholder="Expliquez les raisons du rejet de cette demande..."
+                    required></textarea>
+          <div class="form-text">Ce motif sera communiqué au demandeur.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-danger" onclick="submitReject()" id="confirmRejectBtn">
+          <i class="fas fa-times me-2"></i>Confirmer le rejet
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour afficher les PDF -->
+<div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="pdfModalLabel">
+          <i class="fas fa-file-pdf me-2"></i>Prévisualisation du document
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
+          <span id="pdfFileName" class="fw-semibold"></span>
+          <div>
+            <a href="#" id="pdfDownloadLink" class="btn btn-sm btn-outline-primary me-2">
+              <i class="fas fa-download me-1"></i>Télécharger
+            </a>
+            <a href="#" id="pdfOpenLink" target="_blank" class="btn btn-sm btn-outline-success">
+              <i class="fas fa-external-link-alt me-1"></i>Nouvel onglet
+            </a>
+          </div>
+        </div>
+        <div class="pdf-container" style="height: 70vh;">
+          <iframe id="pdfViewer" 
+                  src="" 
+                  width="100%" 
+                  height="100%" 
+                  frameborder="0"
+                  style="border: none;">
+            <p>Votre navigateur ne supporte pas l'affichage des PDF. 
+               <a href="#" id="pdfFallbackLink">Cliquez ici pour télécharger le fichier</a>.</p>
+          </iframe>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Gradients pour les headers */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+}
+
+.bg-gradient-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+
+.bg-gradient-info {
+  background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+}
+
+.bg-gradient-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+}
+
+/* Amélioration des info-items */
+.info-item {
+  position: relative;
+  padding: 0.5rem 0;
+}
+
+.info-item label {
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Amélioration des cartes de fichiers */
+.file-item {
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef !important;
+  cursor: pointer;
+}
+
+.file-item:hover {
+  border-color: #0d6efd !important;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* Timeline améliorée */
+.timeline {
+  position: relative;
+  padding-left: 25px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, #0d6efd, #e9ecef);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -19px;
+  top: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px currentColor;
+}
+
+.timeline-content {
+  background: #f8f9fa;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #0d6efd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.timeline-header strong {
+  color: #495057;
+  font-size: 0.85rem;
+}
+
+.timeline-header small {
+  font-size: 0.75rem;
+}
+
+/* Améliorations des badges */
+.badge {
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Améliorations des boutons */
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Modal améliorations */
+.modal-content {
+  border: none;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  border-bottom: none;
+}
+
+.modal-footer {
+  border-top: 1px solid #e9ecef;
+}
+
+/* Responsive améliorations */
+@media (max-width: 768px) {
+  .col-lg-9, .col-lg-3 {
+    width: 100% !important;
+  }
+  
+  .timeline {
+    padding-left: 20px;
+  }
+  
+  .file-item .d-flex {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .file-item .file-icon {
+    margin: 0 0 10px 0;
+  }
+}
+
+/* Animation pour les éléments */
+.card {
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Amélioration du PDF container */
+.pdf-container {
+  background: #f8f9fa;
+  border-radius: 0 0 0.375rem 0.375rem;
+}
+
+#pdfViewer {
+  border-radius: 0;
+}
+</style>
+
+<script>
+function submitAction(action) {
+  const form = document.getElementById('traitementForm');
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'action';
+  input.value = action;
+  form.appendChild(input);
+  form.submit();
+}
+
+function submitReject() {
+  const motif = document.getElementById('motif_rejet_modal').value.trim();
+  if (!motif) {
+    alert('Veuillez saisir un motif de rejet.');
+    return;
+  }
+  
+  const form = document.getElementById('traitementForm');
+  
+  // Ajouter l'action
+  const actionInput = document.createElement('input');
+  actionInput.type = 'hidden';
+  actionInput.name = 'action';
+  actionInput.value = 'rejeter';
+  form.appendChild(actionInput);
+  
+  // Ajouter le motif
+  const motifInput = document.createElement('input');
+  motifInput.type = 'hidden';
+  motifInput.name = 'motif_rejet';
+  motifInput.value = motif;
+  form.appendChild(motifInput);
+  
+  form.submit();
+}
+
+function showPDF(pdfUrl, fileName) {
+  // Mettre à jour le modal avec les informations du PDF
+  document.getElementById('pdfFileName').textContent = fileName;
+  document.getElementById('pdfViewer').src = pdfUrl;
+  document.getElementById('pdfDownloadLink').href = pdfUrl;
+  document.getElementById('pdfOpenLink').href = pdfUrl;
+  document.getElementById('pdfFallbackLink').href = pdfUrl;
+  
+  // Ouvrir le modal
+  const pdfModal = new bootstrap.Modal(document.getElementById('pdfModal'));
+  pdfModal.show();
+}
+
+function testFileAccess(fileUrl) {
+  // Test simple pour vérifier si le fichier est accessible
+  console.log('Tentative d\'accès au fichier:', fileUrl);
+  return true; // Permettre l'ouverture normale
+}
+
+// Amélioration de l'UX avec des animations
+document.addEventListener('DOMContentLoaded', function() {
+  // Animation des cartes au chargement
+  const cards = document.querySelectorAll('.card');
+  cards.forEach((card, index) => {
+    card.style.animationDelay = `${index * 0.1}s`;
+  });
+  
+  // Amélioration des tooltips pour les noms de fichiers longs
+  const fileNames = document.querySelectorAll('.text-truncate[title]');
+  fileNames.forEach(element => {
+    if (element.scrollWidth > element.clientWidth) {
+      element.classList.add('has-tooltip');
+    }
+  });
+});
+
+// Gestion des erreurs de chargement des fichiers
+window.addEventListener('error', function(e) {
+  if (e.target.tagName === 'IFRAME') {
+    console.error('Erreur de chargement du PDF:', e.target.src);
+    e.target.style.display = 'none';
+    const fallbackMessage = document.createElement('div');
+    fallbackMessage.className = 'alert alert-warning text-center m-3';
+    fallbackMessage.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Impossible de charger le document. <a href="' + e.target.src + '" target="_blank">Cliquez ici pour l\'ouvrir</a>';
+    e.target.parentNode.appendChild(fallbackMessage);
+  }
+}, true);
+</script>
 {% endblock %}

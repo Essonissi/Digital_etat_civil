@@ -151,6 +151,29 @@
         .login-link a:hover {
             text-decoration: underline;
         }
+        .verification-help {
+            text-align: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .verification-help p {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .verification-help a {
+            color: #dc2626;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .verification-help a:hover {
+            text-decoration: underline;
+            color: #b91c1c;
+        }
         .togo-emblem {
             width: 40px;
             height: 40px;
@@ -219,11 +242,27 @@
         <!-- Form Section -->
         <div class="form-section">
             <h2 class="form-title">Connexion</h2>
+            
+            <!-- Messages de succès ou d'erreur -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} mb-4 p-3 rounded-lg"
+                         {% if message.tags == 'success' %}
+                             style="background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;"
+                         {% else %}
+                             style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca;"
+                         {% endif %}>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
             {% if error %}
                 <div class="error-message">
                     {{ error }}
                 </div>
             {% endif %}
+            
             <form method="POST" class="space-y-4">
                 {% csrf_token %}
                 <div class="form-group">
@@ -252,11 +291,18 @@
                     Se connecter
                 </button>
             </form>
+            
             <div class="login-link">
                 <p>Vous n'avez pas encore de compte ?</p>
                 <a href="{% url 'citoyen_signup' %}">
                     Créer un compte
                 </a>
+            </div>
+
+            <!-- Section d'aide pour la vérification -->
+            <div class="verification-help">
+                <p>Vous n'avez pas reçu l'email de vérification ?</p>
+                <a href="{% url 'renvoyer_verification' %}">Renvoyer l'email de vérification</a>
             </div>
         </div>
     </div>
