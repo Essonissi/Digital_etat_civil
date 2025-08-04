@@ -11,3 +11,4 @@ notifications/__pycache__/
 logs/__pycache__/
 fichiers/__pycache__/
 
+*.py[cod]
