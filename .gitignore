@@ -1,4 +1,15 @@
 .env
 DigitEtatCiv/settings.py
 /media/*
-*/__pycache__/
+DigitEtatCiv/__pycache__/
+comptes/__pycache__/
+documents/__pycache__/
+communes/__pycache__/
+centres/__pycache__/
+demandes/__pycache__/
+notifications/__pycache__/
+logs/__pycache__/
+fichiers/__pycache__/
+
+media/justificatifs/*
+media/confirmations/*
