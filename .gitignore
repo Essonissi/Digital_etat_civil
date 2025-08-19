@@ -1,5 +1,4 @@
 .env
-DigitEtatCiv/settings.py
 media/
 DigitEtatCiv/__pycache__/
 comptes/__pycache__/
