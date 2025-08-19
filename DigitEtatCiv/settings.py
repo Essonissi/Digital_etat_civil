@@ -25,7 +25,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-j_!9chmgl7tcrx!=24n73
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='digital-etat-civil.onrender.com,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*.onrender.com,localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -82,7 +82,7 @@ DATABASES = {
         'NAME': config('DB_NAME', default='Etat_civil'),
         'USER': config('DB_USER', default='etat_admin'),
         'PASSWORD': config('DB_PASSWORD', default='gracelachic'),
-        'HOST': config('DB_HOST', default='c'),
+        'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='5432'),
     }
 }
@@ -174,3 +174,5 @@ LOGGING = {
         },
     },
 }
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
