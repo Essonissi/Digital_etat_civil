@@ -396,3 +396,13 @@ def quartiers_par_commune(request):
     quartiers = Quartier.objects.filter(commune_id=commune_id)
     data = [{'id': q.id, 'nom': q.nom} for q in quartiers]
     return JsonResponse({'quartiers': data})
+
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+
+def create_superuser(request):
+    User = get_user_model()
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@email.com', '1234AZER')
+        return HttpResponse("Superuser créé !")
+    return HttpResponse("Superuser existe déjà.")

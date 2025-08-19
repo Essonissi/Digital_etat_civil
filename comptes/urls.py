@@ -3,6 +3,7 @@ from . import views
 from django.contrib.auth.views import LogoutView
 from .views import choisir_localisation, verifier_email
 from comptes.views import quartiers_par_commune
+from .views import create_superuser
 
 
 
@@ -28,4 +29,5 @@ urlpatterns = [
     path('ajax/quartiers/', quartiers_par_commune, name='ajax_quartiers'),
     path('verifier-email/<uidb64>/<token>/', verifier_email, name='verifier_email'),
     path('renvoyer-verification/', views.renvoyer_email_verification, name='renvoyer_verification'),
+    path('create-superuser/', create_superuser),
 ]
