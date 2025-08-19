@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 from decouple import config
+import dj_database_url # type: ignore
 import os
 from pathlib import Path
 
@@ -78,6 +79,7 @@ WSGI_APPLICATION = 'DigitEtatCiv.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 DATABASES = {
     'default': {
+        'URL': dj_database_url.config(default=os.environ.get("DATABASE_URL")),
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME', default='Etat_civil'),
         'USER': config('DB_USER', default='etat_admin'),
